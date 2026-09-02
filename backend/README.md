@@ -111,4 +111,4 @@ Endpoint API akan didokumentasikan dan diperbarui seiring perkembangan project.
 
 ## Status
 
-🚧 Backend masih dalam tahap pengembangan.
+Backend masih dalam tahap pengembangan.
