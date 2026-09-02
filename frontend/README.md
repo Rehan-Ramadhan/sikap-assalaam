@@ -109,4 +109,3 @@ Perubahan frontend kemudian akan diintegrasikan ke branch `main`.
 ## Status
 
 Frontend masih dalam tahap pengembangan.
->>>>>>> Stashed changes
