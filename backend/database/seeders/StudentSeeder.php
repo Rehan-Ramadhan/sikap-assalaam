@@ -60,7 +60,7 @@ class StudentSeeder extends Seeder
             $user = User::create([
                 'name' => $data['name'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
-                'email' => 'siswa' . str_pad($nomorUrut, 2, '0', STR_PAD_LEFT) . '@sikap.test',
+                'email' => 'siswa' . str_pad($nomorUrut, 2, '0', STR_PAD_LEFT) . '@sikap.assalaam.sch.id',
                 'password' => Hash::make('password'),
                 'role' => 'siswa',
             ]);

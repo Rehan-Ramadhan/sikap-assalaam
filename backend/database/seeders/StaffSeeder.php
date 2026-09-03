@@ -46,7 +46,7 @@ class StaffSeeder extends Seeder
             $user = User::create([
                 'name' => $data['name'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
-                'email' => 'staff' . ($index + 1) . '@sikap_assalaam',
+                'email' => 'staff' . ($index + 1) . '@sikap.assalaam.sch.id',
                 'password' => Hash::make('password'),
                 'role' => 'staff',
             ]);
