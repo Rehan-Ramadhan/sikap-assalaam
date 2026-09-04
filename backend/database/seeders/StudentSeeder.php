@@ -57,10 +57,14 @@ class StudentSeeder extends Seeder
                 . str_pad($nomorKelas, 2, '0', STR_PAD_LEFT)
                 . str_pad($nomorUrut, 3, '0', STR_PAD_LEFT);
 
+            $emailName = strtolower(trim($data['name']));
+            $emailName = preg_replace('/[^a-z0-9]+/i', '.', $emailName);
+            $emailName = trim($emailName, '.');
+
             $user = User::create([
                 'name' => $data['name'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
-                'email' => 'siswa' . str_pad($nomorUrut, 2, '0', STR_PAD_LEFT) . '@sikap.assalaam.sch.id',
+                'email' => $emailName . '@sikap.assalaam.sch.id',
                 'password' => Hash::make('password'),
                 'role' => 'siswa',
             ]);

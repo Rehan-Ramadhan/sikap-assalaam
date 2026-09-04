@@ -43,10 +43,14 @@ class StaffSeeder extends Seeder
         ];
 
         foreach ($staff as $index => $data) {
+            $emailName = strtolower(trim($data['name']));
+            $emailName = preg_replace('/[^a-z0-9]+/i', '.', $emailName);
+            $emailName = trim($emailName, '.');
+
             $user = User::create([
                 'name' => $data['name'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
-                'email' => 'staff' . ($index + 1) . '@sikap.assalaam.sch.id',
+                'email' => $emailName . '@sikap.assalaam.sch.id',
                 'password' => Hash::make('password'),
                 'role' => 'staff',
             ]);
