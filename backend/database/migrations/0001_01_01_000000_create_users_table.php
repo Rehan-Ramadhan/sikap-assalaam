@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->enum('role', [
                 'siswa',
-                'staff'
+                'staf'
             ])->default('siswa');
 
             $table->rememberToken();
