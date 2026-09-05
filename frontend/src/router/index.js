@@ -1,107 +1,103 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
 
-import Login from '../views/Auth/Login.vue'
-import DashboardKesiswaan from '../views/Kesiswaan/Dashboard.vue'
-import DashboardSiswa from '../views/Siswa/Dashboard.vue'
-import DataSiswa from '../views/Kesiswaan/DataSiswa.vue'
+import Login from "../views/Auth/Login.vue";
+import DashboardKesiswaan from "../views/Kesiswaan/Dashboard.vue";
+import DashboardSiswa from "../views/Siswa/Dashboard.vue";
+import DataSiswa from "../views/Kesiswaan/DataSiswa.vue";
 
 const routes = [
   {
-    path: '/',
-    redirect: '/login'
+    path: "/",
+    redirect: "/login",
   },
   {
-    path: '/login',
-    name: 'login',
-    component: Login
+    path: "/login",
+    name: "login",
+    component: Login,
   },
   {
-    path: '/kesiswaan',
-    name: 'kesiswaan.dashboard',
+    path: "/kesiswaan",
+    name: "kesiswaan.dashboard",
     component: DashboardKesiswaan,
     meta: {
       requiresAuth: true,
-      role: 'kesiswaan'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/kesiswaan/siswa',
-    name: 'kesiswaan.siswa',
+    path: "/kesiswaan/siswa",
+    name: "kesiswaan.siswa",
     component: DataSiswa,
     meta: {
       requiresAuth: true,
-      role: 'kesiswaan'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/siswa',
-    name: 'siswa.dashboard',
+    path: "/siswa",
+    name: "siswa.dashboard",
     component: DashboardSiswa,
     meta: {
       requiresAuth: true,
-      role: 'siswa'
-    }
-  }
-]
+      role: "siswa",
+    },
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  const userData = localStorage.getItem('user')
+  const token = localStorage.getItem("token");
+  const userData = localStorage.getItem("user");
 
-  let user = null
+  let user = null;
 
   if (userData) {
     try {
-      user = JSON.parse(userData)
+      user = JSON.parse(userData);
     } catch (error) {
-      console.error('Data user tidak valid:', error)
-      localStorage.removeItem('user')
+      console.error("Data user tidak valid:", error);
+      localStorage.removeItem("user");
     }
   }
 
-  // Jika halaman membutuhkan login
   if (to.meta.requiresAuth) {
-    // Belum login
     if (!token || !user) {
-      next('/login')
-      return
+      next("/login");
+      return;
     }
 
-    // Jika role tidak sesuai
     if (to.meta.role && user.role !== to.meta.role) {
-      if (user.role === 'kesiswaan') {
-        next('/kesiswaan')
-      } else if (user.role === 'siswa') {
-        next('/siswa')
+      if (user.role === "kesiswaan") {
+        next("/kesiswaan");
+      } else if (user.role === "siswa") {
+        next("/siswa");
       } else {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        next('/login')
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        next("/login");
       }
 
-      return
+      return;
     }
   }
 
-  // Jika sudah login lalu membuka halaman login
-  if (to.path === '/login' && token && user) {
-    if (user.role === 'kesiswaan') {
-      next('/kesiswaan')
-      return
+  if (to.path === "/login" && token && user) {
+    if (user.role === "kesiswaan") {
+      next("/kesiswaan");
+      return;
     }
 
-    if (user.role === 'siswa') {
-      next('/siswa')
-      return
+    if (user.role === "siswa") {
+      next("/siswa");
+      return;
     }
   }
 
-  next()
-})
+  next();
+});
 
-export default router
+export default router;
