@@ -1,6 +1,5 @@
 <template>
   <AppLayout role="kesiswaan">
-
     <div class="page-header">
       <div>
         <span class="section-label">DATA MASTER</span>
@@ -14,13 +13,10 @@
       </button>
     </div>
 
-
     <!-- TABLE CARD -->
     <div class="table-card">
-
       <!-- TOOLBAR -->
       <div class="table-toolbar">
-
         <div class="search-box">
           <Search :size="17" />
 
@@ -34,15 +30,11 @@
         <div class="student-total">
           Total <strong>{{ filteredStudents.length }}</strong> siswa
         </div>
-
       </div>
-
 
       <!-- TABLE -->
       <div class="table-wrapper">
-
         <table>
-
           <thead>
             <tr>
               <th>No</th>
@@ -57,12 +49,7 @@
           </thead>
 
           <tbody>
-
-            <tr
-              v-for="(student, index) in filteredStudents"
-              :key="student.id"
-            >
-
+            <tr v-for="(student, index) in filteredStudents" :key="student.id">
               <td>{{ index + 1 }}</td>
 
               <td>
@@ -91,98 +78,65 @@
 
               <td>
                 <div class="action-buttons">
+                  <button class="detail-btn" @click="openDetail(student)">
+                    <Eye :size="15" />
+                    Detail
+                  </button>
 
-                    <button
-                        class="detail-btn"
-                        @click="openDetail(student)"
-                    >
-                        <Eye :size="15" />
-                        Detail
-                    </button>
+                  <button
+                    class="edit-btn"
+                    @click="openEditModal(student)"
+                    title="Edit siswa"
+                  >
+                    <Pencil :size="15" />
+                  </button>
 
-                    <button
-                        class="edit-btn"
-                        @click="openEditModal(student)"
-                        title="Edit siswa"
-                    >
-                        <Pencil :size="15" />
-                    </button>
-
-                    <button
-                        class="delete-btn"
-                        @click="deleteStudent(student)"
-                        title="Hapus siswa"
-                    >
-                        <Trash2 :size="15" />
-                    </button>
-
-                    </div>
+                  <button
+                    class="delete-btn"
+                    @click="deleteStudent(student)"
+                    title="Hapus siswa"
+                  >
+                    <Trash2 :size="15" />
+                  </button>
+                </div>
               </td>
-
             </tr>
-
 
             <!-- EMPTY -->
             <tr v-if="filteredStudents.length === 0">
-
               <td colspan="8">
-
                 <div class="empty-state">
-
                   <div class="empty-icon">
                     <Users :size="25" />
                   </div>
 
                   <strong>Data siswa tidak ditemukan</strong>
 
-                  <span>
-                    Coba gunakan kata pencarian yang berbeda.
-                  </span>
-
+                  <span> Coba gunakan kata pencarian yang berbeda. </span>
                 </div>
-
               </td>
-
             </tr>
-
           </tbody>
-
         </table>
-
       </div>
-
     </div>
 
-
     <!-- DETAIL MODAL -->
-    <div
-      v-if="selectedStudent"
-      class="modal-overlay"
-      @click.self="closeDetail"
-    >
-
+    <div v-if="selectedStudent" class="modal-overlay" @click.self="closeDetail">
       <div class="detail-modal">
-
         <div class="modal-header">
-
           <div>
             <span class="section-label">DETAIL SISWA</span>
             <h2>Informasi Siswa</h2>
           </div>
 
-          <button
-            class="close-btn"
-            @click="closeDetail"
-          >
+          <button class="close-btn" @click="closeDetail">
             <X :size="19" />
           </button>
-
         </div>
-
 
         <!-- PROFILE -->
         <div class="student-profile">
-
           <div class="profile-avatar">
             {{ getInitial(selectedStudent.nama) }}
           </div>
@@ -191,13 +145,10 @@
             <h3>{{ selectedStudent.nama }}</h3>
             <span>NIS {{ selectedStudent.nis }}</span>
           </div>
-
         </div>
-
 
         <!-- DETAIL GRID -->
         <div class="detail-grid">
-
           <div class="detail-item">
             <span>NIS</span>
             <strong>{{ selectedStudent.nis }}</strong>
@@ -243,69 +194,40 @@
               {{ selectedStudent.status }}
             </span>
           </div>
-
         </div>
 
-
         <div class="modal-footer">
+          <button class="modal-close-btn" @click="closeDetail">Tutup</button>
 
-          <button
-            class="modal-close-btn"
-            @click="closeDetail"
-          >
-            Tutup
-          </button>
-
-          <button
-            class="modal-edit-btn"
-            @click="openEditFromDetail"
-          >
+          <button class="modal-edit-btn" @click="openEditFromDetail">
             <Pencil :size="15" />
             Edit Data
           </button>
-
         </div>
-
       </div>
-
     </div>
 
-
     <!-- ADD / EDIT MODAL -->
-    <div
-      v-if="showForm"
-      class="modal-overlay"
-      @click.self="closeForm"
-    >
-
+    <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
       <div class="form-modal">
-
         <div class="modal-header">
-
           <div>
             <span class="section-label">
-              {{ isEdit ? 'EDIT DATA' : 'DATA BARU' }}
+              {{ isEdit ? "EDIT DATA" : "DATA BARU" }}
             </span>
 
             <h2>
-              {{ isEdit ? 'Edit Siswa' : 'Tambah Siswa' }}
+              {{ isEdit ? "Edit Siswa" : "Tambah Siswa" }}
             </h2>
           </div>
 
-          <button
-            class="close-btn"
-            @click="closeForm"
-          >
+          <button class="close-btn" @click="closeForm">
             <X :size="19" />
           </button>
-
         </div>
 
-
         <form @submit.prevent="saveStudent">
-
           <div class="form-grid">
-
             <div class="form-group form-full">
               <label>Nama Siswa</label>
 
@@ -316,7 +238,6 @@
                 required
               />
             </div>
-
 
             <div class="form-group">
               <label>NIS</label>
@@ -329,7 +250,6 @@
               />
             </div>
 
-
             <div class="form-group">
               <label>Tingkat</label>
 
@@ -340,7 +260,6 @@
                 <option value="XII">XII</option>
               </select>
             </div>
-
 
             <div class="form-group">
               <label>Jurusan</label>
@@ -353,7 +272,6 @@
               />
             </div>
 
-
             <div class="form-group">
               <label>Nomor Kelas</label>
 
@@ -365,20 +283,15 @@
               />
             </div>
 
-
             <div class="form-group">
               <label>Jenis Kelamin</label>
 
-              <select
-                v-model="form.jenisKelamin"
-                required
-              >
+              <select v-model="form.jenisKelamin" required>
                 <option value="">Pilih jenis kelamin</option>
                 <option value="Laki-laki">Laki-laki</option>
                 <option value="Perempuan">Perempuan</option>
               </select>
             </div>
-
 
             <div class="form-group">
               <label>Tahun Masuk</label>
@@ -391,58 +304,38 @@
               />
             </div>
 
-
             <div class="form-group">
               <label>Status Siswa</label>
 
-              <select
-                v-model="form.status"
-                required
-              >
+              <select v-model="form.status" required>
                 <option value="">Pilih status</option>
                 <option value="Aktif">Aktif</option>
                 <option value="Nonaktif">Nonaktif</option>
                 <option value="Lulus">Lulus</option>
               </select>
             </div>
-
           </div>
 
-
           <div class="modal-footer">
-
-            <button
-              type="button"
-              class="modal-close-btn"
-              @click="closeForm"
-            >
+            <button type="button" class="modal-close-btn" @click="closeForm">
               Batal
             </button>
 
-            <button
-              type="submit"
-              class="modal-edit-btn"
-            >
+            <button type="submit" class="modal-edit-btn">
               <Save :size="15" />
-              {{ isEdit ? 'Simpan Perubahan' : 'Simpan Siswa' }}
+              {{ isEdit ? "Simpan Perubahan" : "Simpan Siswa" }}
             </button>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
-
   </AppLayout>
 </template>
 
-
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
-import AppLayout from '../../components/AppLayout.vue'
+import AppLayout from "../../components/AppLayout.vue";
 
 import {
   Search,
@@ -452,8 +345,8 @@ import {
   X,
   Users,
   Save,
-  Trash2
-} from 'lucide-vue-next'
+  Trash2,
+} from "lucide-vue-next";
 
 /* =========================
    DATA DUMMY
@@ -462,208 +355,194 @@ import {
 const students = ref([
   {
     id: 1,
-    nama: 'Ahmad Fauzan',
-    nis: '23001',
-    tingkat: 'X',
-    jurusan: 'IPA',
-    nomorKelas: '1',
-    jenisKelamin: 'Laki-laki',
-    tahunMasuk: '2023',
-    status: 'Aktif'
+    nama: "Ahmad Fauzan",
+    nis: "23001",
+    tingkat: "X",
+    jurusan: "IPA",
+    nomorKelas: "1",
+    jenisKelamin: "Laki-laki",
+    tahunMasuk: "2023",
+    status: "Aktif",
   },
   {
     id: 2,
-    nama: 'Fajar Ramadhan',
-    nis: '23002',
-    tingkat: 'X',
-    jurusan: 'IPS',
-    nomorKelas: '2',
-    jenisKelamin: 'Laki-laki',
-    tahunMasuk: '2023',
-    status: 'Aktif'
+    nama: "Fajar Ramadhan",
+    nis: "23002",
+    tingkat: "X",
+    jurusan: "IPS",
+    nomorKelas: "2",
+    jenisKelamin: "Laki-laki",
+    tahunMasuk: "2023",
+    status: "Aktif",
   },
   {
     id: 3,
-    nama: 'Muhammad Rizky',
-    nis: '22015',
-    tingkat: 'XI',
-    jurusan: 'IPA',
-    nomorKelas: '1',
-    jenisKelamin: 'Laki-laki',
-    tahunMasuk: '2022',
-    status: 'Aktif'
+    nama: "Muhammad Rizky",
+    nis: "22015",
+    tingkat: "XI",
+    jurusan: "IPA",
+    nomorKelas: "1",
+    jenisKelamin: "Laki-laki",
+    tahunMasuk: "2022",
+    status: "Aktif",
   },
   {
     id: 4,
-    nama: 'Siti Aisyah',
-    nis: '22018',
-    tingkat: 'XI',
-    jurusan: 'IPS',
-    nomorKelas: '2',
-    jenisKelamin: 'Perempuan',
-    tahunMasuk: '2022',
-    status: 'Aktif'
+    nama: "Siti Aisyah",
+    nis: "22018",
+    tingkat: "XI",
+    jurusan: "IPS",
+    nomorKelas: "2",
+    jenisKelamin: "Perempuan",
+    tahunMasuk: "2022",
+    status: "Aktif",
   },
   {
     id: 5,
-    nama: 'Rafi Maulana',
-    nis: '21008',
-    tingkat: 'XII',
-    jurusan: 'IPA',
-    nomorKelas: '1',
-    jenisKelamin: 'Laki-laki',
-    tahunMasuk: '2021',
-    status: 'Lulus'
-  }
-])
-
+    nama: "Rafi Maulana",
+    nis: "21008",
+    tingkat: "XII",
+    jurusan: "IPA",
+    nomorKelas: "1",
+    jenisKelamin: "Laki-laki",
+    tahunMasuk: "2021",
+    status: "Lulus",
+  },
+]);
 
 /* =========================
    SEARCH
 ========================= */
 
-const search = ref('')
+const search = ref("");
 
 const filteredStudents = computed(() => {
-  const keyword = search.value.toLowerCase().trim()
+  const keyword = search.value.toLowerCase().trim();
 
   if (!keyword) {
-    return students.value
+    return students.value;
   }
 
-  return students.value.filter(student =>
-    student.nama.toLowerCase().includes(keyword) ||
-    student.nis.toLowerCase().includes(keyword)
-  )
-})
-
+  return students.value.filter(
+    (student) =>
+      student.nama.toLowerCase().includes(keyword) ||
+      student.nis.toLowerCase().includes(keyword),
+  );
+});
 
 /* =========================
    DETAIL
 ========================= */
 
-const selectedStudent = ref(null)
+const selectedStudent = ref(null);
 
 const openDetail = (student) => {
-  selectedStudent.value = student
-}
+  selectedStudent.value = student;
+};
 
 const closeDetail = () => {
-  selectedStudent.value = null
-}
-
+  selectedStudent.value = null;
+};
 
 /* =========================
    FORM
 ========================= */
 
-const showForm = ref(false)
-const isEdit = ref(false)
+const showForm = ref(false);
+const isEdit = ref(false);
 
 const form = ref({
   id: null,
-  nama: '',
-  nis: '',
-  tingkat: '',
-  jurusan: '',
-  nomorKelas: '',
-  jenisKelamin: '',
-  tahunMasuk: '',
-  status: 'Aktif'
-})
-
+  nama: "",
+  nis: "",
+  tingkat: "",
+  jurusan: "",
+  nomorKelas: "",
+  jenisKelamin: "",
+  tahunMasuk: "",
+  status: "Aktif",
+});
 
 const resetForm = () => {
   form.value = {
     id: null,
-    nama: '',
-    nis: '',
-    tingkat: '',
-    jurusan: '',
-    nomorKelas: '',
-    jenisKelamin: '',
-    tahunMasuk: '',
-    status: 'Aktif'
-  }
-}
-
+    nama: "",
+    nis: "",
+    tingkat: "",
+    jurusan: "",
+    nomorKelas: "",
+    jenisKelamin: "",
+    tahunMasuk: "",
+    status: "Aktif",
+  };
+};
 
 const openAddModal = () => {
-  isEdit.value = false
+  isEdit.value = false;
 
-  resetForm()
+  resetForm();
 
-  showForm.value = true
-}
-
+  showForm.value = true;
+};
 
 const openEditModal = (student) => {
-  isEdit.value = true
+  isEdit.value = true;
 
   form.value = {
-    ...student
-  }
+    ...student,
+  };
 
-  showForm.value = true
-}
-
+  showForm.value = true;
+};
 
 const openEditFromDetail = () => {
-  const student = selectedStudent.value
+  const student = selectedStudent.value;
 
-  closeDetail()
+  closeDetail();
 
-  openEditModal(student)
-}
-
+  openEditModal(student);
+};
 
 const closeForm = () => {
-  showForm.value = false
+  showForm.value = false;
 
-  resetForm()
-}
-
+  resetForm();
+};
 
 const saveStudent = () => {
-
   if (isEdit.value) {
-
     const index = students.value.findIndex(
-      student => student.id === form.value.id
-    )
+      (student) => student.id === form.value.id,
+    );
 
     if (index !== -1) {
       students.value[index] = {
-        ...form.value
-      }
+        ...form.value,
+      };
     }
-
   } else {
-
     const newStudent = {
       ...form.value,
-      id: Date.now()
-    }
+      id: Date.now(),
+    };
 
-    students.value.push(newStudent)
+    students.value.push(newStudent);
   }
 
-  closeForm()
-}
+  closeForm();
+};
 
 const deleteStudent = (student) => {
   const confirmed = window.confirm(
-    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`
-  )
+    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`,
+  );
 
   if (!confirmed) {
-    return
+    return;
   }
 
-  students.value = students.value.filter(
-    item => item.id !== student.id
-  )
-}
+  students.value = students.value.filter((item) => item.id !== student.id);
+};
 
 /* =========================
    HELPERS
@@ -671,34 +550,31 @@ const deleteStudent = (student) => {
 
 const getInitial = (name) => {
   return name
-    .split(' ')
-    .map(word => word[0])
+    .split(" ")
+    .map((word) => word[0])
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
+    .join("")
+    .toUpperCase();
+};
 
 const getStatusClass = (status) => {
-  if (status === 'Aktif') {
-    return 'active'
+  if (status === "Aktif") {
+    return "active";
   }
 
-  if (status === 'Nonaktif') {
-    return 'inactive'
+  if (status === "Nonaktif") {
+    return "inactive";
   }
 
-  if (status === 'Lulus') {
-    return 'graduated'
+  if (status === "Lulus") {
+    return "graduated";
   }
 
-  return ''
-}
+  return "";
+};
 </script>
 
-
 <style scoped>
-
 /* =========================
    PAGE HEADER
 ========================= */
@@ -732,7 +608,6 @@ const getStatusClass = (status) => {
   color: #2563eb;
 }
 
-
 /* =========================
    ADD BUTTON
 ========================= */
@@ -765,7 +640,6 @@ const getStatusClass = (status) => {
   transform: translateY(-1px);
 }
 
-
 /* =========================
    TABLE CARD
 ========================= */
@@ -777,7 +651,6 @@ const getStatusClass = (status) => {
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
   overflow: hidden;
 }
-
 
 /* =========================
    TOOLBAR
@@ -839,7 +712,6 @@ const getStatusClass = (status) => {
   color: #2563eb;
 }
 
-
 /* =========================
    TABLE
 ========================= */
@@ -890,7 +762,6 @@ tbody tr:hover {
   background: #f8fbff;
 }
 
-
 /* =========================
    STUDENT
 ========================= */
@@ -938,7 +809,6 @@ tbody tr:hover {
   font-size: 10px;
   font-weight: 600;
 }
-
 
 /* =========================
    ACTION
@@ -1054,7 +924,6 @@ tbody tr:hover {
   color: #94a3b8;
 }
 
-
 /* =========================
    MODAL
 ========================= */
@@ -1130,7 +999,6 @@ tbody tr:hover {
   background: #f1f5f9;
 }
 
-
 /* =========================
    PROFILE
 ========================= */
@@ -1182,7 +1050,6 @@ tbody tr:hover {
   color: #64748b;
 }
 
-
 /* =========================
    DETAIL GRID
 ========================= */
@@ -1225,7 +1092,6 @@ tbody tr:hover {
   color: #334155;
 }
 
-
 /* =========================
    STATUS
 ========================= */
@@ -1255,7 +1121,6 @@ tbody tr:hover {
   background: #e0e7ff;
   color: #4338ca;
 }
-
 
 /* =========================
    FORM
@@ -1317,7 +1182,6 @@ tbody tr:hover {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
-
 /* =========================
    MODAL FOOTER
 ========================= */
@@ -1364,13 +1228,11 @@ tbody tr:hover {
   background: #1d4ed8;
 }
 
-
 /* =========================
    RESPONSIVE
 ========================= */
 
 @media (max-width: 700px) {
-
   .page-header {
     align-items: flex-start;
     flex-direction: column;
@@ -1401,7 +1263,5 @@ tbody tr:hover {
   .form-full {
     grid-column: auto;
   }
-
 }
-
 </style>

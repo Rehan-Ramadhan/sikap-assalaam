@@ -1,9 +1,7 @@
 <template>
   <div class="login-page">
-
     <!-- LEFT SIDE -->
     <section class="login-left">
-
       <!-- Motif -->
       <div class="pattern pattern-top"></div>
       <div class="pattern pattern-bottom"></div>
@@ -22,55 +20,38 @@
 
       <!-- Welcome -->
       <div class="welcome-content">
-        <span class="welcome-small">
-          Selamat Datang di
-        </span>
+        <span class="welcome-small"> Selamat Datang di </span>
 
-        <h1>
-          SIKAP Assalaam
-        </h1>
+        <h1>SIKAP Assalaam</h1>
 
         <div class="yellow-line"></div>
 
         <p>
-          Sistem Informasi Kedisiplinan dan Prestasi
-          untuk mendukung terciptanya siswa yang
-          berkarakter dan berprestasi.
+          Sistem Informasi Kedisiplinan dan Prestasi untuk mendukung terciptanya
+          siswa yang berkarakter dan berprestasi.
         </p>
       </div>
 
       <!-- Decorative waves -->
       <div class="wave wave-one"></div>
       <div class="wave wave-two"></div>
-
     </section>
-
 
     <!-- RIGHT SIDE -->
     <section class="login-right">
-
       <div class="login-card">
-
         <div class="login-header">
-          <span>
-            Welcome to <strong>SIKAP</strong>
-          </span>
+          <span> Welcome to <strong>SIKAP</strong> </span>
 
           <h2>Sign in</h2>
         </div>
 
-
         <form @submit.prevent="handleLogin">
-
           <!-- USERNAME -->
           <div class="form-group">
-
-            <label for="username">
-              Username
-            </label>
+            <label for="username"> Username </label>
 
             <div class="input-box">
-
               <User :size="19" />
 
               <input
@@ -80,21 +61,14 @@
                 placeholder="Masukkan username"
                 autocomplete="username"
               />
-
             </div>
-
           </div>
-
 
           <!-- PASSWORD -->
           <div class="form-group">
-
-            <label for="password">
-              Password
-            </label>
+            <label for="password"> Password </label>
 
             <div class="input-box">
-
               <LockKeyhole :size="19" />
 
               <input
@@ -110,79 +84,46 @@
                 class="password-button"
                 @click="showPassword = !showPassword"
               >
-                <EyeOff
-                  v-if="showPassword"
-                  :size="19"
-                />
+                <EyeOff v-if="showPassword" :size="19" />
 
-                <Eye
-                  v-else
-                  :size="19"
-                />
+                <Eye v-else :size="19" />
               </button>
-
             </div>
-
           </div>
-
 
           <!-- FORGOT PASSWORD -->
           <div class="forgot-password">
-            <a href="#" @click.prevent>
-              Lupa password?
-            </a>
+            <a href="#" @click.prevent> Lupa password? </a>
           </div>
 
-
           <!-- ERROR -->
-          <div
-            v-if="errorMessage"
-            class="error-message"
-          >
+          <div v-if="errorMessage" class="error-message">
             <CircleAlert :size="17" />
             <span>{{ errorMessage }}</span>
           </div>
 
-
           <!-- LOGIN BUTTON -->
-          <button
-            type="submit"
-            class="login-button"
-            :disabled="loading"
-          >
+          <button type="submit" class="login-button" :disabled="loading">
+            <span v-if="loading"> Memproses... </span>
 
-            <span v-if="loading">
-              Memproses...
-            </span>
+            <span v-else> Sign in </span>
 
-            <span v-else>
-              Sign in
-            </span>
-
-            <ArrowRight
-              v-if="!loading"
-              :size="18"
-            />
-
+            <ArrowRight v-if="!loading" :size="18" />
           </button>
-
         </form>
-
 
         <div class="login-footer">
           © 2026 SIKAP Assalaam. All rights reserved.
         </div>
-
       </div>
-
     </section>
-
   </div>
 </template>
 
-
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import api from "../../utils/api";
 
 import {
   GraduationCap,
@@ -191,43 +132,82 @@ import {
   Eye,
   EyeOff,
   CircleAlert,
-  ArrowRight
-} from 'lucide-vue-next'
+  ArrowRight,
+} from "lucide-vue-next";
 
+const router = useRouter();
 
-const username = ref('')
-const password = ref('')
+const username = ref("");
+const password = ref("");
 
-const showPassword = ref(false)
-const loading = ref(false)
-const errorMessage = ref('')
+const showPassword = ref(false);
+const loading = ref(false);
+const errorMessage = ref("");
 
-
-const handleLogin = () => {
-  errorMessage.value = ''
+const handleLogin = async () => {
+  errorMessage.value = "";
 
   if (!username.value.trim()) {
-    errorMessage.value = 'Username wajib diisi.'
-    return
+    errorMessage.value = "Email wajib diisi.";
+    return;
   }
 
   if (!password.value) {
-    errorMessage.value = 'Password wajib diisi.'
-    return
+    errorMessage.value = "Password wajib diisi.";
+    return;
   }
 
-  console.log('Username:', username.value)
-  console.log('Password:', password.value)
-}
+  loading.value = true;
+
+  try {
+    const response = await api.post("/login", {
+      email: username.value.trim(),
+      password: password.value,
+    });
+
+    const token = response.data.token;
+    const user = response.data.user;
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    console.log("Login berhasil:", user);
+
+    if (user.role === "staff") {
+      if (user.staff?.jabatan === "kesiswaan") {
+        await router.push("/kesiswaan");
+      } else {
+        await router.push("/kesiswaan");
+      }
+    } else if (user.role === "siswa") {
+      await router.push("/siswa");
+    } else {
+      errorMessage.value = "Role pengguna tidak dikenali.";
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+
+    if (error.response?.status === 422) {
+      errorMessage.value =
+        error.response.data?.errors?.email?.[0] || "Email atau password salah.";
+    } else if (error.response?.status === 401) {
+      errorMessage.value = "Email atau password salah.";
+    } else if (error.response) {
+      errorMessage.value =
+        error.response.data?.message || "Terjadi kesalahan saat login.";
+    } else {
+      errorMessage.value = "Tidak dapat terhubung ke server Laravel.";
+    }
+  } finally {
+    loading.value = false;
+  }
+};
 </script>
 
-
 <style scoped>
-
 * {
   box-sizing: border-box;
 }
-
 
 /* ========================================
    PAGE
@@ -244,7 +224,6 @@ const handleLogin = () => {
   overflow: hidden;
 }
 
-
 /* ========================================
    LEFT
 ======================================== */
@@ -256,19 +235,12 @@ const handleLogin = () => {
 
   padding: 45px 65px;
 
-  background:
-    linear-gradient(
-      145deg,
-      #0757c9 0%,
-      #086bdc 50%,
-      #1687e8 100%
-    );
+  background: linear-gradient(145deg, #0757c9 0%, #086bdc 50%, #1687e8 100%);
 
   color: white;
 
   overflow: hidden;
 }
-
 
 /* ========================================
    LOGO
@@ -298,8 +270,7 @@ const handleLogin = () => {
 
   color: #1267d9;
 
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .brand strong {
@@ -320,7 +291,6 @@ const handleLogin = () => {
 
   color: rgba(255, 255, 255, 0.85);
 }
-
 
 /* ========================================
    WELCOME
@@ -379,7 +349,6 @@ const handleLogin = () => {
   color: rgba(255, 255, 255, 0.82);
 }
 
-
 /* ========================================
    MOTIF
 ======================================== */
@@ -392,12 +361,7 @@ const handleLogin = () => {
 
   opacity: 0.12;
 
-  background-image:
-    radial-gradient(
-      circle,
-      white 1.5px,
-      transparent 1.5px
-    );
+  background-image: radial-gradient(circle, white 1.5px, transparent 1.5px);
 
   background-size: 18px 18px;
 }
@@ -413,7 +377,6 @@ const handleLogin = () => {
 
   opacity: 0.08;
 }
-
 
 /* ========================================
    WAVES
@@ -445,7 +408,6 @@ const handleLogin = () => {
   bottom: -180px;
 }
 
-
 /* ========================================
    RIGHT
 ======================================== */
@@ -463,16 +425,14 @@ const handleLogin = () => {
 
   background: #f8fafc;
 
-  background-image:
-    radial-gradient(
-      circle,
-      rgba(37, 99, 235, 0.06) 1px,
-      transparent 1px
-    );
+  background-image: radial-gradient(
+    circle,
+    rgba(37, 99, 235, 0.06) 1px,
+    transparent 1px
+  );
 
   background-size: 22px 22px;
 }
-
 
 /* ========================================
    LOGIN CARD
@@ -488,10 +448,8 @@ const handleLogin = () => {
 
   background: white;
 
-  box-shadow:
-    0 20px 50px rgba(15, 23, 42, 0.10);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1);
 }
-
 
 /* ========================================
    HEADER
@@ -522,7 +480,6 @@ const handleLogin = () => {
 
   font-weight: 700;
 }
-
 
 /* ========================================
    FORM
@@ -564,8 +521,7 @@ const handleLogin = () => {
 .input-box:focus-within {
   border-color: #2563eb;
 
-  box-shadow:
-    0 0 0 3px rgba(37, 99, 235, 0.09);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.09);
 
   color: #2563eb;
 }
@@ -598,7 +554,6 @@ const handleLogin = () => {
   color: #a0aaba;
 }
 
-
 /* ========================================
    PASSWORD
 ======================================== */
@@ -626,7 +581,6 @@ const handleLogin = () => {
   color: #2563eb;
 }
 
-
 /* ========================================
    FORGOT
 ======================================== */
@@ -650,7 +604,6 @@ const handleLogin = () => {
 .forgot-password a:hover {
   text-decoration: underline;
 }
-
 
 /* ========================================
    ERROR
@@ -676,7 +629,6 @@ const handleLogin = () => {
 
   font-size: 12px;
 }
-
 
 /* ========================================
    BUTTON
@@ -708,8 +660,7 @@ const handleLogin = () => {
 
   cursor: pointer;
 
-  box-shadow:
-    0 8px 18px rgba(18, 103, 223, 0.22);
+  box-shadow: 0 8px 18px rgba(18, 103, 223, 0.22);
 
   transition: all 0.2s ease;
 }
@@ -719,8 +670,7 @@ const handleLogin = () => {
 
   transform: translateY(-1px);
 
-  box-shadow:
-    0 11px 23px rgba(18, 103, 223, 0.28);
+  box-shadow: 0 11px 23px rgba(18, 103, 223, 0.28);
 }
 
 .login-button:disabled {
@@ -728,7 +678,6 @@ const handleLogin = () => {
 
   cursor: not-allowed;
 }
-
 
 /* ========================================
    FOOTER
@@ -744,13 +693,11 @@ const handleLogin = () => {
   color: #94a3b8;
 }
 
-
 /* ========================================
    RESPONSIVE
 ======================================== */
 
 @media (max-width: 900px) {
-
   .login-page {
     grid-template-columns: 42% 58%;
   }
@@ -778,12 +725,9 @@ const handleLogin = () => {
   .login-card {
     padding: 35px;
   }
-
 }
 
-
 @media (max-width: 700px) {
-
   .login-page {
     display: block;
   }
@@ -803,8 +747,7 @@ const handleLogin = () => {
 
     border-radius: 20px;
 
-    box-shadow:
-      0 10px 30px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   }
 
   .login-header {
@@ -814,6 +757,5 @@ const handleLogin = () => {
   .login-header h2 {
     font-size: 36px;
   }
-
 }
 </style>
