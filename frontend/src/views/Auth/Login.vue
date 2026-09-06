@@ -173,8 +173,8 @@ const handleLogin = async () => {
 
     console.log("Login berhasil:", user);
 
-    if (user.role === "staff") {
-      if (user.staff?.jabatan === "kesiswaan") {
+    if (user.role === "staf") {
+      if (user.staf?.jabatan === "kesiswaan") {
         await router.push("/kesiswaan");
       } else {
         await router.push("/kesiswaan");
