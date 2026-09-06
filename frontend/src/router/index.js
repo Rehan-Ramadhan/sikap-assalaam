@@ -21,7 +21,7 @@ const routes = [
     component: DashboardKesiswaan,
     meta: {
       requiresAuth: true,
-      role: "staff",
+      role: "staf",
     },
   },
   {
@@ -30,7 +30,7 @@ const routes = [
     component: DataSiswa,
     meta: {
       requiresAuth: true,
-      role: "staff",
+      role: "staf",
     },
   },
   {
