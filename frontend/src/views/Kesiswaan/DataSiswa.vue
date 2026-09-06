@@ -333,7 +333,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import api from "../../utils/api";
 
 import AppLayout from "../../components/AppLayout.vue";
 
@@ -348,67 +349,58 @@ import {
   Trash2,
 } from "lucide-vue-next";
 
-/* =========================
-   DATA DUMMY
-========================= */
+const students = ref([]);
+const loading = ref(false);
+const errorMessage = ref("");
 
-const students = ref([
-  {
-    id: 1,
-    nama: "Ahmad Fauzan",
-    nis: "23001",
-    tingkat: "X",
-    jurusan: "IPA",
-    nomorKelas: "1",
-    jenisKelamin: "Laki-laki",
-    tahunMasuk: "2023",
-    status: "Aktif",
-  },
-  {
-    id: 2,
-    nama: "Fajar Ramadhan",
-    nis: "23002",
-    tingkat: "X",
-    jurusan: "IPS",
-    nomorKelas: "2",
-    jenisKelamin: "Laki-laki",
-    tahunMasuk: "2023",
-    status: "Aktif",
-  },
-  {
-    id: 3,
-    nama: "Muhammad Rizky",
-    nis: "22015",
-    tingkat: "XI",
-    jurusan: "IPA",
-    nomorKelas: "1",
-    jenisKelamin: "Laki-laki",
-    tahunMasuk: "2022",
-    status: "Aktif",
-  },
-  {
-    id: 4,
-    nama: "Siti Aisyah",
-    nis: "22018",
-    tingkat: "XI",
-    jurusan: "IPS",
-    nomorKelas: "2",
-    jenisKelamin: "Perempuan",
-    tahunMasuk: "2022",
-    status: "Aktif",
-  },
-  {
-    id: 5,
-    nama: "Rafi Maulana",
-    nis: "21008",
-    tingkat: "XII",
-    jurusan: "IPA",
-    nomorKelas: "1",
-    jenisKelamin: "Laki-laki",
-    tahunMasuk: "2021",
-    status: "Lulus",
-  },
-]);
+const fetchStudents = async () => {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await api.get("/admin/students");
+
+    console.log("Response API siswa:", response.data);
+
+    students.value = response.data.data.map((student) => ({
+      id: student.id,
+      nama: student.user?.name ?? "-",
+      nis: student.nis,
+      tingkat: student.tingkat,
+      jurusan: student.jurusan,
+      nomorKelas: student.nomor_kelas,
+      jenisKelamin:
+        student.user?.jenis_kelamin === "L"
+          ? "Laki-laki"
+          : student.user?.jenis_kelamin === "P"
+            ? "Perempuan"
+            : "-",
+      tahunMasuk: student.tahun_masuk,
+      status:
+        student.status === "aktif"
+          ? "Aktif"
+          : student.status === "nonaktif"
+            ? "Nonaktif"
+            : student.status === "lulus"
+              ? "Lulus"
+              : student.status,
+    }));
+  } catch (error) {
+    console.error("Gagal mengambil data siswa:", error);
+
+    if (error.response?.status === 401) {
+      errorMessage.value = "Sesi login sudah tidak valid.";
+    } else {
+      errorMessage.value = "Gagal mengambil data siswa dari server.";
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStudents();
+});
 
 /* =========================
    SEARCH
