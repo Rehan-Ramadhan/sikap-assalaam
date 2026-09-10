@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 import Login from "../views/Auth/Login.vue";
-import DashboardKesiswaan from "../views/Kesiswaan/Dashboard.vue";
-import DashboardSiswa from "../views/Siswa/Dashboard.vue";
-import DataSiswa from "../views/Kesiswaan/DataSiswa.vue";
+import DashboardAdmin from "../views/Admin/Dashboard.vue";
+import DashboardUser from "../views/User/Dashboard.vue";
+import StudentIndex from "../views/Admin/Student/Index.vue";
 
 const routes = [
   {
@@ -16,27 +16,27 @@ const routes = [
     component: Login,
   },
   {
-    path: "/kesiswaan",
-    name: "kesiswaan.dashboard",
-    component: DashboardKesiswaan,
+    path: "/admin",
+    name: "admin.dashboard",
+    component: DashboardAdmin,
     meta: {
       requiresAuth: true,
       role: "staf",
     },
   },
   {
-    path: "/kesiswaan/siswa",
-    name: "kesiswaan.siswa",
-    component: DataSiswa,
+    path: "/admin/user",
+    name: "admin.user",
+    component: Datauser,
     meta: {
       requiresAuth: true,
       role: "staf",
     },
   },
   {
-    path: "/siswa",
-    name: "siswa.dashboard",
-    component: DashboardSiswa,
+    path: "/user",
+    name: "user.dashboard",
+    component: StudentIndex,
     meta: {
       requiresAuth: true,
       role: "siswa",
@@ -71,8 +71,8 @@ router.beforeEach((to, from, next) => {
     }
 
     if (to.meta.role && user.role !== to.meta.role) {
-      if (user.role === "kesiswaan") {
-        next("/kesiswaan");
+      if (user.role === "admin") {
+        next("/admin");
       } else if (user.role === "siswa") {
         next("/siswa");
       } else {
@@ -86,8 +86,8 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.path === "/login" && token && user) {
-    if (user.role === "kesiswaan") {
-      next("/kesiswaan");
+    if (user.role === "admin") {
+      next("/admin");
       return;
     }
 

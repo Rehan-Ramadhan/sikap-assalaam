@@ -1,5 +1,238 @@
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import api from "../../../utils/api.js";
+import AppLayout from "../../../components/AppLayout.vue";
+
+import {
+  Search,
+  Plus,
+  Eye,
+  Pencil,
+  X,
+  Users,
+  Save,
+  Trash2,
+} from "lucide-vue-next";
+
+const students = ref([]);
+const loading = ref(false);
+const errorMessage = ref("");
+
+const fetchStudents = async () => {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await api.get("/admin/students");
+
+    console.log("Response API siswa:", response.data);
+
+    students.value = response.data.data.map((student) => ({
+      id: student.id,
+      nama: student.user?.name ?? "-",
+      nis: student.nis,
+      tingkat: student.tingkat,
+      jurusan: student.jurusan,
+      nomorKelas: student.nomor_kelas,
+      jenisKelamin:
+        student.user?.jenis_kelamin === "L"
+          ? "Laki-laki"
+          : student.user?.jenis_kelamin === "P"
+            ? "Perempuan"
+            : "-",
+      tahunMasuk: student.tahun_masuk,
+      status:
+        student.status === "aktif"
+          ? "Aktif"
+          : student.status === "nonaktif"
+            ? "Nonaktif"
+            : student.status === "lulus"
+              ? "Lulus"
+              : student.status,
+    }));
+  } catch (error) {
+    console.error("Gagal mengambil data siswa:", error);
+
+    if (error.response?.status === 401) {
+      errorMessage.value = "Sesi login sudah tidak valid.";
+    } else {
+      errorMessage.value = "Gagal mengambil data siswa dari server.";
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStudents();
+});
+
+/* =========================
+   SEARCH
+========================= */
+
+const search = ref("");
+
+const filteredStudents = computed(() => {
+  const keyword = search.value.toLowerCase().trim();
+
+  if (!keyword) {
+    return students.value;
+  }
+
+  return students.value.filter(
+    (student) =>
+      student.nama.toLowerCase().includes(keyword) ||
+      student.nis.toLowerCase().includes(keyword),
+  );
+});
+
+/* =========================
+   DETAIL
+========================= */
+
+const selectedStudent = ref(null);
+
+const openDetail = (student) => {
+  selectedStudent.value = student;
+};
+
+const closeDetail = () => {
+  selectedStudent.value = null;
+};
+
+/* =========================
+   FORM
+========================= */
+
+const showForm = ref(false);
+const isEdit = ref(false);
+
+const form = ref({
+  id: null,
+  nama: "",
+  nis: "",
+  tingkat: "",
+  jurusan: "",
+  nomorKelas: "",
+  jenisKelamin: "",
+  tahunMasuk: "",
+  status: "Aktif",
+});
+
+const resetForm = () => {
+  form.value = {
+    id: null,
+    nama: "",
+    nis: "",
+    tingkat: "",
+    jurusan: "",
+    nomorKelas: "",
+    jenisKelamin: "",
+    tahunMasuk: "",
+    status: "Aktif",
+  };
+};
+
+const openAddModal = () => {
+  isEdit.value = false;
+
+  resetForm();
+
+  showForm.value = true;
+};
+
+const openEditModal = (student) => {
+  isEdit.value = true;
+
+  form.value = {
+    ...student,
+  };
+
+  showForm.value = true;
+};
+
+const openEditFromDetail = () => {
+  const student = selectedStudent.value;
+
+  closeDetail();
+
+  openEditModal(student);
+};
+
+const closeForm = () => {
+  showForm.value = false;
+
+  resetForm();
+};
+
+const saveStudent = () => {
+  if (isEdit.value) {
+    const index = students.value.findIndex(
+      (student) => student.id === form.value.id,
+    );
+
+    if (index !== -1) {
+      students.value[index] = {
+        ...form.value,
+      };
+    }
+  } else {
+    const newStudent = {
+      ...form.value,
+      id: Date.now(),
+    };
+
+    students.value.push(newStudent);
+  }
+
+  closeForm();
+};
+
+const deleteStudent = (student) => {
+  const confirmed = window.confirm(
+    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`,
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  students.value = students.value.filter((item) => item.id !== student.id);
+};
+
+/* =========================
+   HELPERS
+========================= */
+
+const getInitial = (name) => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+};
+
+const getStatusClass = (status) => {
+  if (status === "Aktif") {
+    return "active";
+  }
+
+  if (status === "Nonaktif") {
+    return "inactive";
+  }
+
+  if (status === "Lulus") {
+    return "graduated";
+  }
+
+  return "";
+};
+</script>
+
 <template>
-  <AppLayout role="kesiswaan">
+  <AppLayout role="admin" title="Data Siswa">
     <div class="page-header">
       <div>
         <span class="section-label">DATA MASTER</span>
@@ -331,240 +564,6 @@
     </div>
   </AppLayout>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from "vue";
-import api from "../../utils/api";
-
-import AppLayout from "../../components/AppLayout.vue";
-
-import {
-  Search,
-  Plus,
-  Eye,
-  Pencil,
-  X,
-  Users,
-  Save,
-  Trash2,
-} from "lucide-vue-next";
-
-const students = ref([]);
-const loading = ref(false);
-const errorMessage = ref("");
-
-const fetchStudents = async () => {
-  loading.value = true;
-  errorMessage.value = "";
-
-  try {
-    const response = await api.get("/admin/students");
-
-    console.log("Response API siswa:", response.data);
-
-    students.value = response.data.data.map((student) => ({
-      id: student.id,
-      nama: student.user?.name ?? "-",
-      nis: student.nis,
-      tingkat: student.tingkat,
-      jurusan: student.jurusan,
-      nomorKelas: student.nomor_kelas,
-      jenisKelamin:
-        student.user?.jenis_kelamin === "L"
-          ? "Laki-laki"
-          : student.user?.jenis_kelamin === "P"
-            ? "Perempuan"
-            : "-",
-      tahunMasuk: student.tahun_masuk,
-      status:
-        student.status === "aktif"
-          ? "Aktif"
-          : student.status === "nonaktif"
-            ? "Nonaktif"
-            : student.status === "lulus"
-              ? "Lulus"
-              : student.status,
-    }));
-  } catch (error) {
-    console.error("Gagal mengambil data siswa:", error);
-
-    if (error.response?.status === 401) {
-      errorMessage.value = "Sesi login sudah tidak valid.";
-    } else {
-      errorMessage.value = "Gagal mengambil data siswa dari server.";
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchStudents();
-});
-
-/* =========================
-   SEARCH
-========================= */
-
-const search = ref("");
-
-const filteredStudents = computed(() => {
-  const keyword = search.value.toLowerCase().trim();
-
-  if (!keyword) {
-    return students.value;
-  }
-
-  return students.value.filter(
-    (student) =>
-      student.nama.toLowerCase().includes(keyword) ||
-      student.nis.toLowerCase().includes(keyword),
-  );
-});
-
-/* =========================
-   DETAIL
-========================= */
-
-const selectedStudent = ref(null);
-
-const openDetail = (student) => {
-  selectedStudent.value = student;
-};
-
-const closeDetail = () => {
-  selectedStudent.value = null;
-};
-
-/* =========================
-   FORM
-========================= */
-
-const showForm = ref(false);
-const isEdit = ref(false);
-
-const form = ref({
-  id: null,
-  nama: "",
-  nis: "",
-  tingkat: "",
-  jurusan: "",
-  nomorKelas: "",
-  jenisKelamin: "",
-  tahunMasuk: "",
-  status: "Aktif",
-});
-
-const resetForm = () => {
-  form.value = {
-    id: null,
-    nama: "",
-    nis: "",
-    tingkat: "",
-    jurusan: "",
-    nomorKelas: "",
-    jenisKelamin: "",
-    tahunMasuk: "",
-    status: "Aktif",
-  };
-};
-
-const openAddModal = () => {
-  isEdit.value = false;
-
-  resetForm();
-
-  showForm.value = true;
-};
-
-const openEditModal = (student) => {
-  isEdit.value = true;
-
-  form.value = {
-    ...student,
-  };
-
-  showForm.value = true;
-};
-
-const openEditFromDetail = () => {
-  const student = selectedStudent.value;
-
-  closeDetail();
-
-  openEditModal(student);
-};
-
-const closeForm = () => {
-  showForm.value = false;
-
-  resetForm();
-};
-
-const saveStudent = () => {
-  if (isEdit.value) {
-    const index = students.value.findIndex(
-      (student) => student.id === form.value.id,
-    );
-
-    if (index !== -1) {
-      students.value[index] = {
-        ...form.value,
-      };
-    }
-  } else {
-    const newStudent = {
-      ...form.value,
-      id: Date.now(),
-    };
-
-    students.value.push(newStudent);
-  }
-
-  closeForm();
-};
-
-const deleteStudent = (student) => {
-  const confirmed = window.confirm(
-    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`,
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  students.value = students.value.filter((item) => item.id !== student.id);
-};
-
-/* =========================
-   HELPERS
-========================= */
-
-const getInitial = (name) => {
-  return name
-    .split(" ")
-    .map((word) => word[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-};
-
-const getStatusClass = (status) => {
-  if (status === "Aktif") {
-    return "active";
-  }
-
-  if (status === "Nonaktif") {
-    return "inactive";
-  }
-
-  if (status === "Lulus") {
-    return "graduated";
-  }
-
-  return "";
-};
-</script>
 
 <style scoped>
 /* =========================
