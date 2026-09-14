@@ -15,10 +15,9 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('user_id')
-                ->nullable()
                 ->unique()
                 ->constrained('users')
-                ->nullOnDelete();
+                ->cascadeOnDelete();
 
             $table->string('nis', 20)->unique();
 
