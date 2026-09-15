@@ -4,14 +4,26 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class EnsureRole
 {
-    public function handle(Request $request, Closure $next, ...$roles)
-    {
+    public function handle(
+        Request $request,
+        Closure $next,
+        ...$roles
+    ): Response {
         $user = $request->user();
 
-        if (!$user || !in_array($user->role, $roles)) {
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+                'data' => null,
+            ], 401);
+        }
+
+        if (!in_array($user->role, $roles, true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki akses untuk aksi ini.',
@@ -22,7 +34,7 @@ class EnsureRole
         if ($user->role === 'staff' && !$user->staff) {
             return response()->json([
                 'success' => false,
-                'message' => 'Akun staf ini belum memiliki data staff yang valid.',
+                'message' => 'Data staff tidak ditemukan.',
                 'data' => null,
             ], 403);
         }
@@ -30,7 +42,7 @@ class EnsureRole
         if ($user->role === 'student' && !$user->student) {
             return response()->json([
                 'success' => false,
-                'message' => 'Akun siswa ini belum memiliki data student yang valid.',
+                'message' => 'Data student tidak ditemukan.',
                 'data' => null,
             ], 403);
         }
