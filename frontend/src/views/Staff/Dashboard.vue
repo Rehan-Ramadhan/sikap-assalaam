@@ -196,8 +196,8 @@
 
           <div class="card-header">
             <div>
-              <h3>Pelanggaran Terbaru</h3>
-              <p>Data pelanggaran terbaru</p>
+              <h2 class="section-title">Pelanggaran Terbaru</h2>
+              <p class="section-description">Data pelanggaran terbaru</p>
             </div>
 
             <button class="view-all-btn">
@@ -265,8 +265,8 @@
 
           <div class="card-header">
             <div>
-              <h3>Prestasi Terbaru</h3>
-              <p>Prestasi siswa terbaru</p>
+              <h2 class="section-title">Prestasi Terbaru</h2>
+              <p class="section-description">Data prestasi terbaru</p>
             </div>
 
             <button class="view-all-btn">

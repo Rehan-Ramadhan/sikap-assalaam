@@ -1,810 +1,564 @@
 <template>
   <AppLayout>
-    <div class="page-header">
-      <div>
-        <span class="section-label">DATA MASTER</span>
-        <h1>Data Siswa</h1>
-        <p>Kelola data siswa Assalaam</p>
+    <div class="student-page">
+
+      <!-- HEADER -->
+      <div class="page-header">
+        <div>
+          <h1>Data Siswa</h1>
+          <p>Kelola data siswa yang terdaftar di SIKAP Assalaam.</p>
+        </div>
+
+        <button class="btn-primary" @click="goToCreate">
+          <Plus :size="18" />
+          <span>Tambah Siswa</span>
+        </button>
       </div>
 
-      <button class="add-btn" @click="openAddModal">
-        <Plus :size="17" />
-        Tambah Siswa
-      </button>
-    </div>
-
-    <!-- TABLE CARD -->
-    <div class="table-card">
-      <!-- TOOLBAR -->
-      <div class="table-toolbar">
+      <!-- SEARCH -->
+      <div class="filter-card">
         <div class="search-box">
-          <Search :size="17" />
-
+          <Search :size="18" />
           <input
-            v-model="search"
+            v-model="searchQuery"
             type="text"
             placeholder="Cari nama atau NIS..."
           />
         </div>
-
-        <div class="student-total">
-          Total <strong>{{ filteredStudents.length }}</strong> siswa
-        </div>
       </div>
 
       <!-- TABLE -->
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>Nama</th>
-              <th>NIS</th>
-              <th>Tingkat</th>
-              <th>Jurusan</th>
-              <th>Nomor Kelas</th>
-              <th>Jenis Kelamin</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
+      <div class="table-card">
 
-          <tbody>
-            <tr v-for="(student, index) in filteredStudents" :key="student.id">
-              <td>{{ index + 1 }}</td>
+        <div class="table-header">
+          <div>
+            <h2>Daftar Siswa</h2>
+            <span>{{ filteredStudents.length }} data siswa ditemukan</span>
+          </div>
+        </div>
 
-              <td>
-                <div class="student-name">
-                  <div class="student-avatar">
-                    {{ getInitial(student.nama) }}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-no">No</th>
+                <th>Nama</th>
+                <th>NIS</th>
+                <th>Tingkat</th>
+                <th>Jurusan</th>
+                <th>Kelas</th>
+                <th>Jenis Kelamin</th>
+                <th class="col-action">Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr
+                v-for="(student, index) in filteredStudents"
+                :key="student.id"
+              >
+                <!-- NO -->
+                <td class="text-center">
+                  {{ index + 1 }}
+                </td>
+
+                <!-- NAMA -->
+                <td>
+                  <div class="student-info">
+                    <div class="student-avatar">
+                      <User :size="17" />
+                    </div>
+
+                    <strong>{{ student.nama }}</strong>
                   </div>
+                </td>
 
-                  <strong>{{ student.nama }}</strong>
-                </div>
-              </td>
+                <!-- NIS -->
+                <td>
+                  {{ student.nis }}
+                </td>
 
-              <td>{{ student.nis }}</td>
+                <!-- TINGKAT -->
+                <td>
+                  <span class="level-badge">
+                    Kelas {{ student.tingkat }}
+                  </span>
+                </td>
 
-              <td>{{ student.tingkat }}</td>
+                <!-- JURUSAN -->
+                <td>
+                  {{ student.jurusan }}
+                </td>
 
-              <td>{{ student.jurusan }}</td>
-
-              <td>
-                <span class="class-badge">
+                <!-- KELAS -->
+                <td>
                   {{ student.nomorKelas }}
-                </span>
-              </td>
+                </td>
 
-              <td>{{ student.jenisKelamin }}</td>
+                <!-- JENIS KELAMIN -->
+                <td>
+                  {{ student.jenisKelamin }}
+                </td>
 
-              <td>
-                <div class="action-buttons">
-                  <button class="detail-btn" @click="openDetail(student)">
-                    <Eye :size="15" />
-                    Detail
-                  </button>
+                <!-- AKSI -->
+                <td>
+                  <div class="action-buttons">
 
-                  <button
-                    class="edit-btn"
-                    @click="openEditModal(student)"
-                    title="Edit siswa"
-                  >
-                    <Pencil :size="15" />
-                  </button>
+                    <button
+                      class="action-btn detail"
+                      title="Lihat detail"
+                      @click="goToShow(student.id)"
+                    >
+                      <Eye :size="17" />
+                    </button>
 
-                  <button
-                    class="delete-btn"
-                    @click="deleteStudent(student)"
-                    title="Hapus siswa"
-                  >
-                    <Trash2 :size="15" />
-                  </button>
-                </div>
-              </td>
-            </tr>
+                    <button
+                      class="action-btn edit"
+                      title="Edit siswa"
+                      @click="goToEdit(student.id)"
+                    >
+                      <Pencil :size="17" />
+                    </button>
 
-            <!-- EMPTY -->
-            <tr v-if="filteredStudents.length === 0">
-              <td colspan="8">
-                <div class="empty-state">
-                  <div class="empty-icon">
-                    <Users :size="25" />
+                    <button
+                      class="action-btn delete"
+                      title="Hapus siswa"
+                      @click="deleteStudent(student)"
+                    >
+                      <Trash2 :size="17" />
+                    </button>
+
                   </div>
+                </td>
+              </tr>
 
-                  <strong>Data siswa tidak ditemukan</strong>
+              <!-- EMPTY -->
+              <tr v-if="filteredStudents.length === 0">
+                <td colspan="8">
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <Users :size="28" />
+                    </div>
 
-                  <span> Coba gunakan kata pencarian yang berbeda. </span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                    <strong>Data siswa tidak ditemukan</strong>
+
+                    <span>
+                      Tidak ada siswa yang sesuai dengan pencarian.
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
       </div>
-    </div>
 
-    <!-- DETAIL MODAL -->
-    <div v-if="selectedStudent" class="modal-overlay" @click.self="closeDetail">
-      <div class="detail-modal">
-        <div class="modal-header">
-          <div>
-            <span class="section-label">DETAIL SISWA</span>
-            <h2>Informasi Siswa</h2>
-          </div>
-
-          <button class="close-btn" @click="closeDetail">
-            <X :size="19" />
-          </button>
-        </div>
-
-        <!-- PROFILE -->
-        <div class="student-profile">
-          <div class="profile-avatar">
-            {{ getInitial(selectedStudent.nama) }}
-          </div>
-
-          <div>
-            <h3>{{ selectedStudent.nama }}</h3>
-            <span>NIS {{ selectedStudent.nis }}</span>
-          </div>
-        </div>
-
-        <!-- DETAIL GRID -->
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span>NIS</span>
-            <strong>{{ selectedStudent.nis }}</strong>
-          </div>
-
-          <div class="detail-item">
-            <span>Nama</span>
-            <strong>{{ selectedStudent.nama }}</strong>
-          </div>
-
-          <div class="detail-item">
-            <span>Tingkat</span>
-            <strong>{{ selectedStudent.tingkat }}</strong>
-          </div>
-
-          <div class="detail-item">
-            <span>Jurusan</span>
-            <strong>{{ selectedStudent.jurusan }}</strong>
-          </div>
-
-          <div class="detail-item">
-            <span>Nomor Kelas</span>
-            <strong>{{ selectedStudent.nomorKelas }}</strong>
-          </div>
-
-          <div class="detail-item">
-            <span>Jenis Kelamin</span>
-            <strong>{{ selectedStudent.jenisKelamin }}</strong>
-          </div>
-
-          <div class="detail-item">
-            <span>Tahun Masuk</span>
-            <strong>{{ selectedStudent.tahunMasuk }}</strong>
-          </div>
-
-          <div class="detail-item">
-            <span>Status Siswa</span>
-
-            <span
-              class="status-badge"
-              :class="getStatusClass(selectedStudent.status)"
-            >
-              {{ selectedStudent.status }}
-            </span>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button class="modal-close-btn" @click="closeDetail">Tutup</button>
-
-          <button class="modal-edit-btn" @click="openEditFromDetail">
-            <Pencil :size="15" />
-            Edit Data
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ADD / EDIT MODAL -->
-    <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
-      <div class="form-modal">
-        <div class="modal-header">
-          <div>
-            <span class="section-label">
-              {{ isEdit ? "EDIT DATA" : "DATA BARU" }}
-            </span>
-
-            <h2>
-              {{ isEdit ? "Edit Siswa" : "Tambah Siswa" }}
-            </h2>
-          </div>
-
-          <button class="close-btn" @click="closeForm">
-            <X :size="19" />
-          </button>
-        </div>
-
-        <form @submit.prevent="saveStudent">
-          <div class="form-grid">
-            <div class="form-group form-full">
-              <label>Nama Siswa</label>
-
-              <input
-                v-model="form.nama"
-                type="text"
-                placeholder="Masukkan nama siswa"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label>NIS</label>
-
-              <input
-                v-model="form.nis"
-                type="text"
-                placeholder="Contoh: 23001"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Tingkat</label>
-
-              <select v-model="form.tingkat" required>
-                <option value="">Pilih tingkat</option>
-                <option value="X">X</option>
-                <option value="XI">XI</option>
-                <option value="XII">XII</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Jurusan</label>
-
-              <input
-                v-model="form.jurusan"
-                type="text"
-                placeholder="Contoh: IPA"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Nomor Kelas</label>
-
-              <input
-                v-model="form.nomorKelas"
-                type="text"
-                placeholder="Contoh: 1"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Jenis Kelamin</label>
-
-              <select v-model="form.jenisKelamin" required>
-                <option value="">Pilih jenis kelamin</option>
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Tahun Masuk</label>
-
-              <input
-                v-model="form.tahunMasuk"
-                type="number"
-                placeholder="Contoh: 2023"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Status Siswa</label>
-
-              <select v-model="form.status" required>
-                <option value="">Pilih status</option>
-                <option value="Aktif">Aktif</option>
-                <option value="Nonaktif">Nonaktif</option>
-                <option value="Lulus">Lulus</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="modal-close-btn" @click="closeForm">
-              Batal
-            </button>
-
-            <button type="submit" class="modal-edit-btn">
-              <Save :size="15" />
-              {{ isEdit ? "Simpan Perubahan" : "Simpan Siswa" }}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import api from "../../../utils/api";
-
-import AppLayout from "../../../layouts/AppLayout.vue";
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
-  Search,
   Plus,
+  Search,
+  User,
   Eye,
   Pencil,
-  X,
-  Users,
-  Save,
   Trash2,
-} from "lucide-vue-next";
+  Users
+} from 'lucide-vue-next'
 
-const students = ref([]);
-const loading = ref(false);
-const errorMessage = ref("");
+import AppLayout from '../../../layouts/AppLayout.vue'
 
-const fetchStudents = async () => {
-  loading.value = true;
-  errorMessage.value = "";
+const router = useRouter()
 
-  try {
-    const response = await api.get("/admin/students");
+const searchQuery = ref('')
 
-    console.log("Response API siswa:", response.data);
+/*
+|--------------------------------------------------------------------------
+| Dummy Data
+|--------------------------------------------------------------------------
+*/
 
-    students.value = response.data.data.map((student) => ({
-      id: student.id,
-      nama: student.user?.name ?? "-",
-      nis: student.nis,
-      tingkat: student.tingkat,
-      jurusan: student.jurusan,
-      nomorKelas: student.nomor_kelas,
-      jenisKelamin:
-        student.user?.jenis_kelamin === "L"
-          ? "Laki-laki"
-          : student.user?.jenis_kelamin === "P"
-            ? "Perempuan"
-            : "-",
-      tahunMasuk: student.tahun_masuk,
-      status:
-        student.status === "aktif"
-          ? "Aktif"
-          : student.status === "nonaktif"
-            ? "Nonaktif"
-            : student.status === "lulus"
-              ? "Lulus"
-              : student.status,
-    }));
-  } catch (error) {
-    console.error("Gagal mengambil data siswa:", error);
-
-    if (error.response?.status === 401) {
-      errorMessage.value = "Sesi login sudah tidak valid.";
-    } else {
-      errorMessage.value = "Gagal mengambil data siswa dari server.";
-    }
-  } finally {
-    loading.value = false;
+const students = ref([
+  {
+    id: 1,
+    nama: 'Ahmad Fauzan',
+    nis: '2026001',
+    tingkat: '10',
+    jurusan: 'RPL',
+    nomorKelas: 1,
+    jenisKelamin: 'Laki-laki'
+  },
+  {
+    id: 2,
+    nama: 'Muhammad Rizky',
+    nis: '2026002',
+    tingkat: '10',
+    jurusan: 'TKR',
+    nomorKelas: 2,
+    jenisKelamin: 'Laki-laki'
+  },
+  {
+    id: 3,
+    nama: 'Siti Aisyah',
+    nis: '2025001',
+    tingkat: '11',
+    jurusan: 'RPL',
+    nomorKelas: 1,
+    jenisKelamin: 'Perempuan'
   }
-};
+])
 
-onMounted(() => {
-  fetchStudents();
-});
-
-/* =========================
-   SEARCH
-========================= */
-
-const search = ref("");
+/*
+|--------------------------------------------------------------------------
+| Search
+|--------------------------------------------------------------------------
+*/
 
 const filteredStudents = computed(() => {
-  const keyword = search.value.toLowerCase().trim();
+  const query = searchQuery.value
+    .trim()
+    .toLowerCase()
 
-  if (!keyword) {
-    return students.value;
+  if (!query) {
+    return students.value
   }
 
-  return students.value.filter(
-    (student) =>
-      student.nama.toLowerCase().includes(keyword) ||
-      student.nis.toLowerCase().includes(keyword),
-  );
-});
+  return students.value.filter((student) => {
+    const nama = String(student.nama ?? '').toLowerCase()
+    const nis = String(student.nis ?? '').toLowerCase()
 
-/* =========================
-   DETAIL
-========================= */
+    return (
+      nama.includes(query) ||
+      nis.includes(query)
+    )
+  })
+})
 
-const selectedStudent = ref(null);
+/*
+|--------------------------------------------------------------------------
+| Navigation
+|--------------------------------------------------------------------------
+*/
 
-const openDetail = (student) => {
-  selectedStudent.value = student;
-};
+const goToCreate = () => {
+  router.push('/staff/siswa/create')
+}
 
-const closeDetail = () => {
-  selectedStudent.value = null;
-};
+const goToShow = (id) => {
+  router.push(`/staff/siswa/${id}`)
+}
 
-/* =========================
-   FORM
-========================= */
+const goToEdit = (id) => {
+  router.push(`/staff/siswa/${id}/edit`)
+}
 
-const showForm = ref(false);
-const isEdit = ref(false);
-
-const form = ref({
-  id: null,
-  nama: "",
-  nis: "",
-  tingkat: "",
-  jurusan: "",
-  nomorKelas: "",
-  jenisKelamin: "",
-  tahunMasuk: "",
-  status: "Aktif",
-});
-
-const resetForm = () => {
-  form.value = {
-    id: null,
-    nama: "",
-    nis: "",
-    tingkat: "",
-    jurusan: "",
-    nomorKelas: "",
-    jenisKelamin: "",
-    tahunMasuk: "",
-    status: "Aktif",
-  };
-};
-
-const openAddModal = () => {
-  isEdit.value = false;
-
-  resetForm();
-
-  showForm.value = true;
-};
-
-const openEditModal = (student) => {
-  isEdit.value = true;
-
-  form.value = {
-    ...student,
-  };
-
-  showForm.value = true;
-};
-
-const openEditFromDetail = () => {
-  const student = selectedStudent.value;
-
-  closeDetail();
-
-  openEditModal(student);
-};
-
-const closeForm = () => {
-  showForm.value = false;
-
-  resetForm();
-};
-
-const saveStudent = () => {
-  if (isEdit.value) {
-    const index = students.value.findIndex(
-      (student) => student.id === form.value.id,
-    );
-
-    if (index !== -1) {
-      students.value[index] = {
-        ...form.value,
-      };
-    }
-  } else {
-    const newStudent = {
-      ...form.value,
-      id: Date.now(),
-    };
-
-    students.value.push(newStudent);
-  }
-
-  closeForm();
-};
+/*
+|--------------------------------------------------------------------------
+| Delete Dummy Data
+|--------------------------------------------------------------------------
+*/
 
 const deleteStudent = (student) => {
   const confirmed = window.confirm(
-    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`,
-  );
+    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`
+  )
 
   if (!confirmed) {
-    return;
+    return
   }
 
-  students.value = students.value.filter((item) => item.id !== student.id);
-};
-
-/* =========================
-   HELPERS
-========================= */
-
-const getInitial = (name) => {
-  return name
-    .split(" ")
-    .map((word) => word[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-};
-
-const getStatusClass = (status) => {
-  if (status === "Aktif") {
-    return "active";
-  }
-
-  if (status === "Nonaktif") {
-    return "inactive";
-  }
-
-  if (status === "Lulus") {
-    return "graduated";
-  }
-
-  return "";
-};
+  students.value = students.value.filter(
+    (item) => item.id !== student.id
+  )
+}
 </script>
 
 <style scoped>
-/* =========================
-   PAGE HEADER
-========================= */
+/* PAGE */
+
+.student-page {
+  width: 100%;
+}
+
+/* HEADER */
 
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .page-header h1 {
-  margin: 0;
+  margin: 0 0 6px;
   font-size: 25px;
-  color: #0f172a;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #172033;
 }
 
 .page-header p {
-  margin: 5px 0 0;
-  color: #94a3b8;
-  font-size: 12px;
+  margin: 0;
+  color: #7b8497;
+  font-size: 14px;
 }
 
-.section-label {
-  display: inline-block;
-  margin-bottom: 5px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #2563eb;
-}
+/* BUTTON */
 
-/* =========================
-   ADD BUTTON
-========================= */
-
-.add-btn {
-  display: flex;
+.btn-primary {
+  height: 42px;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 0 17px;
 
   border: none;
   border-radius: 10px;
 
-  padding: 10px 15px;
-
   background: #2563eb;
-  color: white;
+  color: #ffffff;
 
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
-
-  box-shadow: 0 5px 14px rgba(37, 99, 235, 0.2);
-
-  transition: all 0.2s ease;
+  transition: 0.2s ease;
 }
 
-.add-btn:hover {
+.btn-primary:hover {
   background: #1d4ed8;
   transform: translateY(-1px);
 }
 
-/* =========================
-   TABLE CARD
-========================= */
+/* FILTER */
 
-.table-card {
-  background: white;
-  border: 1px solid #e8edf5;
-  border-radius: 18px;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
-  overflow: hidden;
-}
-
-/* =========================
-   TOOLBAR
-========================= */
-
-.table-toolbar {
+.filter-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 15px;
 
-  padding: 18px 20px;
+  padding: 14px;
+  margin-bottom: 18px;
 
-  border-bottom: 1px solid #eef2f7;
+  background: #ffffff;
+  border: 1px solid #e8ebf2;
+  border-radius: 13px;
+
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.03);
 }
 
 .search-box {
-  width: 320px;
+  width: 100%;
+  max-width: 420px;
+
+  height: 42px;
 
   display: flex;
   align-items: center;
   gap: 9px;
 
-  padding: 9px 12px;
+  padding: 0 13px;
 
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  box-sizing: border-box;
+
+  border: 1px solid #dfe3eb;
   border-radius: 9px;
 
-  color: #94a3b8;
+  color: #8992a5;
 }
 
 .search-box:focus-within {
-  border-color: #93c5fd;
-  background: white;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
 }
 
 .search-box input {
   width: 100%;
+  height: 100%;
 
   border: none;
   outline: none;
+
   background: transparent;
 
-  font-size: 12px;
-  color: #334155;
+  color: #172033;
+  font-size: 13px;
 }
 
 .search-box input::placeholder {
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
-.student-total {
-  font-size: 11px;
-  color: #94a3b8;
+/* TABLE */
+
+.table-card {
+  background: #ffffff;
+
+  border: 1px solid #e8ebf2;
+  border-radius: 13px;
+
+  overflow: hidden;
+
+  box-shadow: 0 3px 12px rgba(30, 41, 59, 0.04);
 }
 
-.student-total strong {
-  color: #2563eb;
+.table-header {
+  padding: 18px 20px;
+
+  border-bottom: 1px solid #edf0f4;
 }
 
-/* =========================
-   TABLE
-========================= */
+.table-header h2 {
+  margin: 0 0 4px;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  color: #172033;
+}
+
+.table-header span {
+  font-size: 12px;
+  color: #8992a5;
+}
+
+/* TABLE WRAPPER */
 
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
 }
 
+/* TABLE */
+
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 950px;
+  table-layout: fixed;
 }
 
 thead {
-  background: #f8fafc;
+  background: #f8faff;
 }
 
 th {
-  padding: 13px 16px;
+  padding: 13px 14px;
 
   text-align: left;
-
-  font-size: 10px;
-  font-weight: 700;
-  color: #64748b;
-
   white-space: nowrap;
+
+  color: #667085;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  border-bottom: 1px solid #edf0f4;
 }
 
 td {
-  padding: 13px 16px;
+  padding: 13px 14px;
 
-  border-top: 1px solid #f1f5f9;
+  color: #475467;
 
-  font-size: 12px;
-  color: #475569;
+  font-size: 13px;
+  font-weight: 400;
 
+  border-bottom: 1px solid #f0f2f5;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 tbody tr {
-  transition: background 0.15s ease;
+  transition: 0.15s ease;
 }
 
 tbody tr:hover {
-  background: #f8fbff;
+  background: #fafcff;
 }
 
-/* =========================
-   STUDENT
-========================= */
+tbody tr:last-child td {
+  border-bottom: none;
+}
 
-.student-name {
+/* COLUMN WIDTH */
+
+.col-no {
+  width: 50px;
+}
+
+.col-action {
+  width: 120px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* STUDENT */
+
+.student-info {
   display: flex;
   align-items: center;
-  gap: 9px;
-}
+  gap: 10px;
 
-.student-name strong {
-  color: #1e293b;
-  font-size: 12px;
+  min-width: 0;
 }
 
 .student-avatar {
-  width: 31px;
-  height: 31px;
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
-
   border-radius: 9px;
 
   background: #eff6ff;
   color: #2563eb;
-
-  font-size: 10px;
-  font-weight: 700;
 }
 
-.class-badge {
+.student-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: #172033;
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* LEVEL */
+
+.level-badge {
   display: inline-flex;
+  align-items: center;
 
-  padding: 4px 8px;
+  padding: 5px 9px;
 
-  border-radius: 6px;
+  border-radius: 7px;
 
-  background: #f1f5f9;
-  color: #475569;
+  background: #eff6ff;
+  color: #2563eb;
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 
-/* =========================
-   ACTION
-========================= */
+/* ACTION */
 
 .action-buttons {
   display: flex;
@@ -812,86 +566,67 @@ tbody tr:hover {
   gap: 6px;
 }
 
-.detail-btn,
-.edit-btn {
+.action-btn {
+  width: 32px;
+  height: 32px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  border: none;
+  border: 1px solid #e3e7ee;
+  border-radius: 8px;
+
+  background: #ffffff;
+
   cursor: pointer;
 
-  border-radius: 7px;
+  transition: 0.15s ease;
 }
 
-.detail-btn {
-  gap: 5px;
+.action-btn.detail {
+  color: #2563eb;
+}
 
-  padding: 7px 9px;
-
+.action-btn.detail:hover {
   background: #eff6ff;
-  color: #2563eb;
-
-  font-size: 10px;
-  font-weight: 600;
+  border-color: #bfdbfe;
 }
 
-.detail-btn:hover {
-  background: #dbeafe;
+.action-btn.edit {
+  color: #d97706;
 }
 
-.edit-btn {
-  width: 30px;
-  height: 30px;
-
-  background: #f8fafc;
-  color: #64748b;
+.action-btn.edit:hover {
+  background: #fffbeb;
+  border-color: #fde68a;
 }
 
-.edit-btn:hover {
-  background: #f1f5f9;
-  color: #2563eb;
-}
-.delete-btn {
-  width: 30px;
-  height: 30px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  border: none;
-  border-radius: 7px;
-
-  background: #fff1f2;
-  color: #ef4444;
-
-  cursor: pointer;
-
-  transition: all 0.2s ease;
-}
-
-.delete-btn:hover {
-  background: #fee2e2;
+.action-btn.delete {
   color: #dc2626;
 }
 
-/* =========================
-   EMPTY
-========================= */
+.action-btn.delete:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* EMPTY */
 
 .empty-state {
+  min-height: 220px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  padding: 55px 20px;
+  padding: 30px;
 }
 
 .empty-icon {
-  width: 50px;
-  height: 50px;
+  width: 54px;
+  height: 54px;
 
   display: flex;
   align-items: center;
@@ -899,361 +634,49 @@ tbody tr:hover {
 
   margin-bottom: 12px;
 
-  border-radius: 13px;
+  border-radius: 50%;
 
-  background: #eff6ff;
-  color: #2563eb;
+  background: #f2f4f7;
+  color: #98a2b3;
 }
 
 .empty-state strong {
-  font-size: 13px;
-  color: #334155;
+  margin-bottom: 5px;
+
+  color: #344054;
+
+  font-size: 14px;
 }
 
 .empty-state span {
-  margin-top: 4px;
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-/* =========================
-   MODAL
-========================= */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-
-  z-index: 1000;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px;
-
-  background: rgba(15, 23, 42, 0.45);
-
-  backdrop-filter: blur(3px);
-}
-
-.detail-modal,
-.form-modal {
-  width: 100%;
-  max-width: 650px;
-
-  max-height: 90vh;
-
-  overflow-y: auto;
-
-  background: white;
-
-  border-radius: 18px;
-
-  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2);
-}
-
-.modal-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-
-  padding: 22px;
-
-  border-bottom: 1px solid #eef2f7;
-}
-
-.modal-header h2 {
-  margin: 0;
-
-  font-size: 19px;
-  color: #0f172a;
-}
-
-.close-btn {
-  width: 32px;
-  height: 32px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: none;
-  border-radius: 8px;
-
-  background: #f8fafc;
-  color: #64748b;
-
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  background: #f1f5f9;
-}
-
-/* =========================
-   PROFILE
-========================= */
-
-.student-profile {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-
-  margin: 20px 22px;
-
-  padding: 15px;
-
-  background: #eff6ff;
-
-  border-radius: 13px;
-}
-
-.profile-avatar {
-  width: 48px;
-  height: 48px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 12px;
-
-  background: #2563eb;
-  color: white;
-
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.student-profile h3 {
-  margin: 0;
-
-  font-size: 15px;
-  color: #1e293b;
-}
-
-.student-profile span {
-  display: block;
-
-  margin-top: 4px;
-
-  font-size: 11px;
-  color: #64748b;
-}
-
-/* =========================
-   DETAIL GRID
-========================= */
-
-.detail-grid {
-  display: grid;
-
-  grid-template-columns: 1fr 1fr;
-
-  gap: 1px;
-
-  margin: 0 22px;
-
-  background: #e2e8f0;
-
-  border: 1px solid #e2e8f0;
-
-  border-radius: 12px;
-
-  overflow: hidden;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-
-  padding: 13px;
-
-  background: white;
-}
-
-.detail-item span:first-child {
-  font-size: 10px;
-  color: #94a3b8;
-}
-
-.detail-item strong {
-  font-size: 12px;
-  color: #334155;
-}
-
-/* =========================
-   STATUS
-========================= */
-
-.status-badge {
-  width: fit-content;
-
-  padding: 4px 8px;
-
-  border-radius: 6px;
-
-  font-size: 10px !important;
-  font-weight: 600;
-}
-
-.status-badge.active {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.status-badge.inactive {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.status-badge.graduated {
-  background: #e0e7ff;
-  color: #4338ca;
-}
-
-/* =========================
-   FORM
-========================= */
-
-.form-modal {
-  max-width: 700px;
-}
-
-.form-grid {
-  display: grid;
-
-  grid-template-columns: 1fr 1fr;
-
-  gap: 15px;
-
-  padding: 22px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-full {
-  grid-column: 1 / -1;
-}
-
-.form-group label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #475569;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  box-sizing: border-box;
-
-  border: 1px solid #e2e8f0;
-
-  border-radius: 8px;
-
-  padding: 10px 11px;
-
-  outline: none;
-
-  background: white;
-
-  color: #334155;
-
+  color: #98a2b3;
   font-size: 12px;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  table {
+    min-width: 850px;
+  }
 }
 
-/* =========================
-   MODAL FOOTER
-========================= */
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-
-  padding: 17px 22px;
-
-  border-top: 1px solid #eef2f7;
-}
-
-.modal-close-btn,
-.modal-edit-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  border: none;
-
-  border-radius: 8px;
-
-  padding: 9px 13px;
-
-  font-size: 11px;
-  font-weight: 600;
-
-  cursor: pointer;
-}
-
-.modal-close-btn {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.modal-edit-btn {
-  background: #2563eb;
-  color: white;
-}
-
-.modal-edit-btn:hover {
-  background: #1d4ed8;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .page-header {
+    flex-direction: column;
     align-items: flex-start;
-    flex-direction: column;
   }
 
-  .add-btn {
+  .btn-primary {
     width: 100%;
-    justify-content: center;
   }
 
-  .table-toolbar {
-    align-items: stretch;
-    flex-direction: column;
+  .filter-card {
+    padding: 12px;
   }
 
   .search-box {
-    width: auto;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-full {
-    grid-column: auto;
+    max-width: none;
   }
 }
 </style>

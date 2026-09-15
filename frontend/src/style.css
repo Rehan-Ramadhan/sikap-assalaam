@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 * {
   margin: 0;
   padding: 0;
@@ -5,7 +6,7 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   background-color: #f5f6f8;
   color: #333;
 }
@@ -14,7 +15,7 @@ button,
 input,
 select,
 textarea {
-  font-family: inherit;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 #app {
@@ -1487,4 +1488,18 @@ textarea {
   color: #dc2626;
   background: #fef2f2;
   border-color: #fecaca;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.section-description {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
 }
