@@ -3,7 +3,7 @@
 
     <!-- JUDUL -->
     <div class="navbar-title">
-      <h2>Dashboard Kesiswaan</h2>
+      <h2>{{ dashboardTitle }}</h2>
       <span>SIKAP Assalaam</span>
     </div>
 
@@ -40,8 +40,8 @@
         </div>
 
         <div class="user-info">
-          <strong>Admin Kesiswaan</strong>
-          <span>Kesiswaan</span>
+          <strong>{{ userName }}</strong>
+          <span>{{ positionLabel }}</span>
         </div>
 
         <ChevronDown :size="17" />
@@ -65,6 +65,8 @@
 
 
 <script setup>
+import { computed } from 'vue'
+
 import {
   Search,
   Bell,
@@ -73,5 +75,41 @@ import {
   LogOut
 } from 'lucide-vue-next'
 
+import { getUser, getStaffPosition } from '../../utils/auth'
+
 defineEmits(['logout'])
+
+const user = getUser()
+const jabatan = getStaffPosition()
+
+const positionNames = {
+  wali_kelas: 'Wali Kelas',
+  bk: 'BK',
+  kesiswaan: 'Kesiswaan',
+  kepala_sekolah: 'Kepala Sekolah'
+}
+
+const positionLabel = computed(() => {
+  if (user?.role === 'siswa') {
+    return 'Siswa'
+  }
+
+  return positionNames[jabatan] || 'Staf'
+})
+
+const userName = computed(() => {
+  if (user?.role === 'siswa') {
+    return user?.name || user?.username || 'Siswa'
+  }
+
+  return user?.staff?.nama || user?.name || user?.username || 'Staf'
+})
+
+const dashboardTitle = computed(() => {
+  if (user?.role === 'siswa') {
+    return 'Dashboard Siswa'
+  }
+
+  return `Dashboard ${positionNames[jabatan] || 'Staf'}`
+})
 </script>

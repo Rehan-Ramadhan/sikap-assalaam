@@ -1,12 +1,12 @@
 <template>
-  <AppLayout role="kesiswaan">
+  <AppLayout>
 
     <div class="dashboard">
 
       <!-- HEADER -->
       <div class="dashboard-header">
         <div>
-          <h1>Dashboard Kesiswaan </h1>
+          <h1>{{ dashboardTitle }}</h1>
 
           <p>
             Pantau kedisiplinan dan prestasi siswa secara keseluruhan.
@@ -44,7 +44,7 @@
 
         <div class="stat-info">
         <span>Total Siswa</span>
-        <strong>350</strong>
+          <strong>{{ totalStudents }}</strong>  
         </div>
 
         <div class="stat-description">
@@ -69,7 +69,7 @@
 
         <div class="stat-info">
         <span>Total Pelanggaran</span>
-        <strong>42</strong>
+        <strong>{{ totalViolations }}</strong>
         </div>
 
         <div class="stat-description">
@@ -94,7 +94,7 @@
 
         <div class="stat-info">
         <span>Total Prestasi</span>
-        <strong>28</strong>
+        <strong>{{ totalAchievements }}</strong>
         </div>
 
         <div class="stat-description">
@@ -119,7 +119,7 @@
 
         <div class="stat-info">
         <span>Poin Tertinggi</span>
-        <strong>120</strong>
+        <strong>{{ highestPoint }}</strong>
         </div>
 
         <div class="stat-description">
@@ -158,7 +158,7 @@
                 <span>Pelanggaran</span>
             </div>
 
-            <strong>42</strong>
+            <strong>{{ totalViolations }}</strong>
             </div>
 
             <div class="summary-item">
@@ -338,32 +338,88 @@
 
 
 <script setup>
-import { computed } from 'vue'
-
-import AppLayout from '../../components/AppLayout.vue'
-import PointTrendChart from '../../components/PointTrendChart.vue'
+import { ref, computed, onMounted } from 'vue'
+import { getUser, getStaffPosition } from '../../utils/auth'
+import AppLayout from '../../layouts/AppLayout.vue'
+import api from '../../utils/api'
 
 import {
   Users,
   TriangleAlert,
   Trophy,
   Star,
-  TrendingUp,
-  TrendingDown,
-  BarChart3,
-  Bell,
+  CalendarDays,
   ArrowRight,
   Medal,
-  Award,
-  CalendarDays
+  Award
 } from 'lucide-vue-next'
 
+import PointTrendChart from '../../components/charts/PointTrendChart.vue'
+
+// =========================
+// USER LOGIN
+// =========================
+
+const user = getUser()
+const jabatan = getStaffPosition()
+
+// =========================
+// NAMA JABATAN
+// =========================
+
+const positionNames = {
+  wali_kelas: 'Wali Kelas',
+  bk: 'BK',
+  kesiswaan: 'Kesiswaan',
+  kepala_sekolah: 'Kepala Sekolah'
+}
+
+// =========================
+// DASHBOARD TITLE
+// =========================
+
+const dashboardTitle = computed(() => {
+  return `Dashboard ${positionNames[jabatan] || 'Staf'}`
+})
+
+// =========================
+// USER NAME
+// =========================
+
+const userName = computed(() => {
+  return user?.staff?.nama || user?.name || user?.username || 'Staf'
+})
+
+// =========================
+// POSITION LABEL
+// =========================
+
+const positionLabel = computed(() => {
+  return positionNames[jabatan] || 'Staf'
+})
+
+// =========================
+// CURRENT DATE
+// =========================
 
 const currentDate = computed(() => {
   return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   }).format(new Date())
 })
+
+// =========================
+// DATA DASHBOARD SEMENTARA
+// =========================
+
+// Data ini nanti kita ganti dengan API Laravel.
+
+const totalStudents = ref(350)
+const totalViolations = ref(42)
+const totalAchievements = ref(28)
+const highestPoint = ref(120)
 </script>
+

@@ -22,11 +22,15 @@
       </div>
 
 
-      <!-- KESISWAAN -->
-      <template v-if="role === 'kesiswaan'">
+      <!-- ================================ -->
+      <!-- STAFF -->
+      <!-- ================================ -->
 
+      <template v-if="role === 'staf'">
+
+        <!-- Dashboard -->
         <router-link
-          to="/kesiswaan"
+          to="/staff"
           class="sidebar-menu"
           exact-active-class="active"
         >
@@ -35,8 +39,9 @@
         </router-link>
 
 
+        <!-- Data Siswa -->
         <router-link
-          to="/kesiswaan/siswa"
+          to="/staff/siswa"
           class="sidebar-menu"
           active-class="active"
         >
@@ -45,8 +50,9 @@
         </router-link>
 
 
+        <!-- Pelanggaran -->
         <router-link
-          to="/kesiswaan/pelanggaran"
+          to="/staff/pelanggaran"
           class="sidebar-menu"
           active-class="active"
         >
@@ -55,8 +61,9 @@
         </router-link>
 
 
+        <!-- Prestasi -->
         <router-link
-          to="/kesiswaan/prestasi"
+          to="/staff/prestasi"
           class="sidebar-menu"
           active-class="active"
         >
@@ -65,8 +72,9 @@
         </router-link>
 
 
+        <!-- Penanganan -->
         <router-link
-          to="/kesiswaan/penanganan"
+          to="/staff/penanganan"
           class="sidebar-menu"
           active-class="active"
         >
@@ -75,8 +83,9 @@
         </router-link>
 
 
+        <!-- Laporan -->
         <router-link
-          to="/kesiswaan/laporan"
+          to="/staff/laporan"
           class="sidebar-menu"
           active-class="active"
         >
@@ -87,9 +96,13 @@
       </template>
 
 
+      <!-- ================================ -->
       <!-- SISWA -->
-      <template v-else>
+      <!-- ================================ -->
 
+      <template v-else-if="role === 'siswa'">
+
+        <!-- Dashboard -->
         <router-link
           to="/siswa"
           class="sidebar-menu"
@@ -100,8 +113,9 @@
         </router-link>
 
 
+        <!-- Profil -->
         <router-link
-          to="/siswa/profil"
+          to="/siswa/profile"
           class="sidebar-menu"
           active-class="active"
         >
@@ -110,16 +124,40 @@
         </router-link>
 
 
+        <!-- Pelanggaran -->
         <router-link
-          to="/siswa/riwayat"
+          to="/siswa/pelanggaran"
           class="sidebar-menu"
           active-class="active"
         >
-          <History :size="19" />
-          <span>Riwayat</span>
+          <TriangleAlert :size="19" />
+          <span>Pelanggaran</span>
         </router-link>
 
 
+        <!-- Prestasi -->
+        <router-link
+          to="/siswa/prestasi"
+          class="sidebar-menu"
+          active-class="active"
+        >
+          <Trophy :size="19" />
+          <span>Prestasi</span>
+        </router-link>
+
+
+        <!-- Intervensi -->
+        <router-link
+          to="/siswa/intervensi"
+          class="sidebar-menu"
+          active-class="active"
+        >
+          <ClipboardList :size="19" />
+          <span>Intervensi</span>
+        </router-link>
+
+
+        <!-- Notifikasi -->
         <router-link
           to="/siswa/notifikasi"
           class="sidebar-menu"
@@ -136,7 +174,8 @@
       </template>
 
     </div>
-   
+
+
     <!-- FOOTER -->
     <div class="sidebar-footer">
 
@@ -167,7 +206,6 @@ import {
   ClipboardList,
   ChartNoAxesCombined,
   User,
-  History,
   Bell,
   School
 } from 'lucide-vue-next'
@@ -179,3 +217,4 @@ defineProps({
   }
 })
 </script>
+

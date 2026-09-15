@@ -1,5 +1,5 @@
 <template>
-  <AppLayout role="kesiswaan">
+  <AppLayout>
     <div class="page-header">
       <div>
         <span class="section-label">DATA MASTER</span>
@@ -334,9 +334,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import api from "../../utils/api";
+import api from "../../../utils/api";
 
-import AppLayout from "../../components/AppLayout.vue";
+import AppLayout from "../../../layouts/AppLayout.vue";
 
 import {
   Search,
