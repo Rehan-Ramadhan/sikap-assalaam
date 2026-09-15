@@ -94,7 +94,7 @@ class InterventionController extends Controller
                 'intervention_id' => $intervention->id,
                 'staff_id' => $request->user()->staff->id,
                 'status' => $validated['status'] === 'menunggu'
-                    ? 'ditunggu'
+                    ? 'menunggu'
                     : $validated['status'],
                 'catatan' => $validated['catatan'] ?? null,
             ]);
@@ -129,7 +129,7 @@ class InterventionController extends Controller
             'status' => [
                 'required',
                 Rule::in([
-                    'ditunggu',
+                    'menunggu',
                     'diproses',
                     'selesai',
                 ]),
@@ -152,7 +152,7 @@ class InterventionController extends Controller
                 'catatan' => $validated['catatan'] ?? null,
             ]);
 
-            $mainStatus = $validated['status'] === 'ditunggu'
+            $mainStatus = $validated['status'] === 'menunggu'
                 ? 'menunggu'
                 : $validated['status'];
 
