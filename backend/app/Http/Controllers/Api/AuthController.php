@@ -24,7 +24,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::with(['siswa', 'student'])->where('email', $data['email'])->first();
+        $user = User::with(['student', 'staff'])->where('email', $data['email'])->first();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -39,7 +39,7 @@ class AuthController extends Controller
 
     public function profile(Request $request)
     {
-        $user = $request->user()->load(['siswa', 'student']);
+        $user = $request->user()->load(['student', 'staff']);
 
         return response()->json([
             'success' => true,

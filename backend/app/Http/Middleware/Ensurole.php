@@ -19,7 +19,7 @@ class EnsureRole
             ], 403);
         }
 
-        if ($user->role === 'staf' && !$user->staff) {
+        if ($user->role === 'staff' && !$user->staff) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akun staf ini belum memiliki data staff yang valid.',
@@ -27,7 +27,7 @@ class EnsureRole
             ], 403);
         }
 
-        if ($user->role === 'siswa' && !$user->student) {
+        if ($user->role === 'student' && !$user->student) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akun siswa ini belum memiliki data student yang valid.',

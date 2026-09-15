@@ -43,7 +43,7 @@ class StudentController extends Controller
                 'jenis_kelamin' => $validated['jenis_kelamin'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role' => 'siswa',
+                'role' => 'student',
             ]);
 
             return Student::create([

@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
-    Route::middleware('role:staf')->group(function () {
+    Route::middleware('role:staff')->group(function () {
         Route::apiResource('students', StudentController::class);
         Route::apiResource('staff', StaffController::class);
 
@@ -53,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/intervention-logs/{interventionLog}', [InterventionLogController::class, 'show']);
     });
 
-    Route::middleware('role:siswa')->prefix('me')->group(function () {
+    Route::middleware('role:student')->prefix('me')->group(function () {
         Route::get('/profile', [StudentSelfController::class, 'profile']);
         Route::get('/violations', [StudentSelfController::class, 'violations']);
         Route::get('/achievements', [StudentSelfController::class, 'achievements']);
