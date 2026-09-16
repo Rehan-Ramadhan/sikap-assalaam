@@ -28,18 +28,26 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'name' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+            ],
+
             'jenis_kelamin' => [
                 'sometimes',
                 'required',
                 Rule::in(['L', 'P']),
             ],
+
             'email' => [
                 'sometimes',
                 'required',
                 'email',
-                Rule::unique('users', 'email')->ignore($user->id),
+                Rule::unique('users', 'email')->ignore($user?->id),
             ],
+
             'password' => [
                 'sometimes',
                 'nullable',
@@ -58,9 +66,7 @@ class ProfileController extends Controller
             ->toArray();
 
         if (!empty($validated['password'])) {
-            $userData['password'] = Hash::make(
-                $validated['password']
-            );
+            $userData['password'] = $validated['password'];
         }
 
         if (!empty($userData)) {
