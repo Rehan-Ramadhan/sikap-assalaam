@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             StudentSeeder::class,
             StaffSeeder::class,
+
+            ViolationCategorySeeder::class,
+            AchievementCategorySeeder::class,
+            PointThresholdSeeder::class,
         ]);
     }
 }
