@@ -19,10 +19,11 @@
       <div class="filter-card">
         <div class="search-box">
           <Search :size="18" />
+
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Cari nama atau NIS..."
+            placeholder="Cari nama siswa atau NIS..."
           />
         </div>
       </div>
@@ -33,7 +34,9 @@
         <div class="table-header">
           <div>
             <h2>Daftar Siswa</h2>
-            <span>{{ filteredStudents.length }} data siswa ditemukan</span>
+            <span>
+              {{ filteredStudents.length }} data siswa ditemukan
+            </span>
           </div>
         </div>
 
@@ -42,8 +45,7 @@
             <thead>
               <tr>
                 <th class="col-no">No</th>
-                <th>Nama</th>
-                <th>NIS</th>
+                <th>Siswa</th>
                 <th>Tingkat</th>
                 <th>Jurusan</th>
                 <th>Kelas</th>
@@ -62,20 +64,18 @@
                   {{ index + 1 }}
                 </td>
 
-                <!-- NAMA -->
+                <!-- SISWA -->
                 <td>
                   <div class="student-info">
                     <div class="student-avatar">
-                      <User :size="17" />
+                      {{ getInitial(student.nama) }}
                     </div>
 
-                    <strong>{{ student.nama }}</strong>
+                    <div class="student-details">
+                      <strong>{{ student.nama }}</strong>
+                      <span>{{ student.nis }}</span>
+                    </div>
                   </div>
-                </td>
-
-                <!-- NIS -->
-                <td>
-                  {{ student.nis }}
                 </td>
 
                 <!-- TINGKAT -->
@@ -87,7 +87,9 @@
 
                 <!-- JURUSAN -->
                 <td>
-                  {{ student.jurusan }}
+                  <span class="jurusan-text">
+                    {{ student.jurusan }}
+                  </span>
                 </td>
 
                 <!-- KELAS -->
@@ -105,7 +107,7 @@
                   <div class="action-buttons">
 
                     <button
-                      class="action-btn detail"
+                      class="action-btn view"
                       title="Lihat detail"
                       @click="goToShow(student.id)"
                     >
@@ -134,7 +136,7 @@
 
               <!-- EMPTY -->
               <tr v-if="filteredStudents.length === 0">
-                <td colspan="8">
+                <td colspan="7">
                   <div class="empty-state">
                     <div class="empty-icon">
                       <Users :size="28" />
@@ -240,6 +242,17 @@ const filteredStudents = computed(() => {
   })
 })
 
+const getInitial = (name) => {
+  if (!name) return '?'
+
+  return name
+    .split(' ')
+    .map(word => word.charAt(0))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+}
+
 /*
 |--------------------------------------------------------------------------
 | Navigation
@@ -280,13 +293,13 @@ const deleteStudent = (student) => {
 </script>
 
 <style scoped>
-/* PAGE */
-
 .student-page {
   width: 100%;
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 
 .page-header {
   display: flex;
@@ -299,7 +312,6 @@ const deleteStudent = (student) => {
 .page-header h1 {
   margin: 0 0 6px;
   font-size: 25px;
-  line-height: 1.2;
   font-weight: 700;
   color: #172033;
 }
@@ -310,19 +322,20 @@ const deleteStudent = (student) => {
   font-size: 14px;
 }
 
-/* BUTTON */
+/* =========================
+   BUTTON
+========================= */
 
 .btn-primary {
-  height: 42px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 
-  padding: 0 17px;
-
   border: none;
   border-radius: 10px;
+
+  padding: 11px 17px;
 
   background: #2563eb;
   color: #ffffff;
@@ -339,20 +352,21 @@ const deleteStudent = (student) => {
   transform: translateY(-1px);
 }
 
-/* FILTER */
+/* =========================
+   FILTER
+========================= */
 
 .filter-card {
   display: flex;
   align-items: center;
 
-  padding: 14px;
+  padding: 16px;
   margin-bottom: 18px;
 
   background: #ffffff;
+
   border: 1px solid #e8ebf2;
   border-radius: 13px;
-
-  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.03);
 }
 
 .search-box {
@@ -373,6 +387,8 @@ const deleteStudent = (student) => {
   border-radius: 9px;
 
   color: #8992a5;
+
+  transition: 0.2s ease;
 }
 
 .search-box:focus-within {
@@ -397,7 +413,9 @@ const deleteStudent = (student) => {
   color: #9ca3af;
 }
 
-/* TABLE */
+/* =========================
+   TABLE
+========================= */
 
 .table-card {
   background: #ffffff;
@@ -430,19 +448,18 @@ const deleteStudent = (student) => {
   color: #8992a5;
 }
 
-/* TABLE WRAPPER */
+/* =========================
+   TABLE WRAPPER
+========================= */
 
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
 }
 
-/* TABLE */
-
 table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
 }
 
 thead {
@@ -453,29 +470,28 @@ th {
   padding: 13px 14px;
 
   text-align: left;
-  white-space: nowrap;
 
   color: #667085;
 
   font-size: 12px;
   font-weight: 600;
 
+  white-space: nowrap;
+
   border-bottom: 1px solid #edf0f4;
 }
 
 td {
-  padding: 13px 14px;
+  padding: 14px;
 
   color: #475467;
 
   font-size: 13px;
   font-weight: 400;
 
-  border-bottom: 1px solid #f0f2f5;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+
+  border-bottom: 1px solid #f0f2f5;
 }
 
 tbody tr {
@@ -490,33 +506,37 @@ tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* COLUMN WIDTH */
+/* =========================
+   COLUMN
+========================= */
 
 .col-no {
-  width: 50px;
+  width: 55px;
 }
 
 .col-action {
-  width: 120px;
+  width: 125px;
 }
 
 .text-center {
   text-align: center;
 }
 
-/* STUDENT */
+/* =========================
+   STUDENT
+========================= */
 
 .student-info {
   display: flex;
   align-items: center;
   gap: 10px;
 
-  min-width: 0;
+  min-width: 190px;
 }
 
 .student-avatar {
-  width: 34px;
-  height: 34px;
+  width: 35px;
+  height: 35px;
 
   flex-shrink: 0;
 
@@ -524,13 +544,24 @@ tbody tr:last-child td {
   align-items: center;
   justify-content: center;
 
-  border-radius: 9px;
+  border-radius: 50%;
 
-  background: #eff6ff;
+  background: #eaf1ff;
   color: #2563eb;
+
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.student-info strong {
+.student-details {
+  min-width: 0;
+}
+
+.student-details strong {
+  display: block;
+
+  margin-bottom: 3px;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -541,7 +572,17 @@ tbody tr:last-child td {
   font-weight: 500;
 }
 
-/* LEVEL */
+.student-details span {
+  display: block;
+
+  color: #98a1b2;
+
+  font-size: 11px;
+}
+
+/* =========================
+   TINGKAT
+========================= */
 
 .level-badge {
   display: inline-flex;
@@ -549,16 +590,27 @@ tbody tr:last-child td {
 
   padding: 5px 9px;
 
-  border-radius: 7px;
+  border-radius: 20px;
 
-  background: #eff6ff;
+  background: #eaf1ff;
   color: #2563eb;
 
   font-size: 11px;
   font-weight: 600;
 }
 
-/* ACTION */
+/* =========================
+   JURUSAN
+========================= */
+
+.jurusan-text {
+  color: #344054;
+  font-weight: 500;
+}
+
+/* =========================
+   ACTION
+========================= */
 
 .action-buttons {
   display: flex;
@@ -570,7 +622,7 @@ tbody tr:last-child td {
   width: 32px;
   height: 32px;
 
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
 
@@ -584,11 +636,11 @@ tbody tr:last-child td {
   transition: 0.15s ease;
 }
 
-.action-btn.detail {
+.action-btn.view {
   color: #2563eb;
 }
 
-.action-btn.detail:hover {
+.action-btn.view:hover {
   background: #eff6ff;
   border-color: #bfdbfe;
 }
@@ -611,22 +663,22 @@ tbody tr:last-child td {
   border-color: #fecaca;
 }
 
-/* EMPTY */
+/* =========================
+   EMPTY
+========================= */
 
 .empty-state {
-  min-height: 220px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  padding: 30px;
+  padding: 55px 20px;
 }
 
 .empty-icon {
-  width: 54px;
-  height: 54px;
+  width: 58px;
+  height: 58px;
 
   display: flex;
   align-items: center;
@@ -646,6 +698,7 @@ tbody tr:last-child td {
   color: #344054;
 
   font-size: 14px;
+  font-weight: 600;
 }
 
 .empty-state span {
@@ -653,7 +706,9 @@ tbody tr:last-child td {
   font-size: 12px;
 }
 
-/* RESPONSIVE */
+/* =========================
+   RESPONSIVE
+========================= */
 
 @media (max-width: 900px) {
   table {

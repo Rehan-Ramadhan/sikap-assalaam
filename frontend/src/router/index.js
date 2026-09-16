@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import Login from '../views/Auth/Login.vue'
+import LandingPage from '../views/Public/LandingPage.vue'
+import ReportIndex from '../views/Reports/Index.vue'
 
 import StaffDashboard from '../views/Staff/Dashboard.vue'
 import StaffProfile from '../views/Staff/Profile.vue'
@@ -12,6 +14,21 @@ import ViolationIndex from '../views/Staff/Violations/Index.vue'
 import ViolationCreate from '../views/Staff/Violations/Create.vue'
 import ViolationShow from '../views/Staff/Violations/Show.vue'
 import ViolationEdit from '../views/Staff/Violations/Edit.vue'
+import AchievementIndex from '../views/Staff/Achievements/Index.vue'
+import AchievementCreate from '../views/Staff/Achievements/Create.vue'
+import AchievementShow from '../views/Staff/Achievements/Show.vue'
+import AchievementEdit from '../views/Staff/Achievements/Edit.vue'
+import AchievementCategoryIndex
+  from '../views/Staff/Achievements/Categories/Index.vue'
+import AchievementCategoryCreate
+  from '../views/Staff/Achievements/Categories/Create.vue'
+import AchievementCategoryShow 
+  from '../views/Staff/Achievements/Categories/Show.vue'  
+import AchievementCategoryEdit 
+  from '../views/Staff/Achievements/Categories/Edit.vue' 
+import InterventionIndex from '../views/Staff/Intervention/Index.vue'
+import InterventionShow from '../views/Staff/Intervention/Show.vue'
+import InterventionEdit from '../views/Staff/Intervention/Edit.vue' 
 
 import SiswaDashboard from '../views/Siswa/Dashboard.vue'
 // import SiswaProfile from '../views/Siswa/Profile.vue'
@@ -30,6 +47,11 @@ const routes = [
   // PUBLIC
   // ========================================
 
+  {
+    path: '/',
+    name: 'landing',
+    component: LandingPage
+  },
   {
     path: '/',
     redirect: '/login'
@@ -145,6 +167,124 @@ const routes = [
       role: 'staf'
     }
   },
+  {
+    path: '/staff/prestasi/kategori',
+    name: 'staff-achievement-categories',
+    component: AchievementCategoryIndex,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/prestasi/kategori/create',
+    name: 'staff-achievement-category-create',
+    component: AchievementCategoryCreate,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/prestasi/kategori/:id',
+    name: 'staff-achievement-category-show',
+    component: AchievementCategoryShow,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/prestasi/kategori/:id/edit',
+    name: 'staff-achievement-category-edit',
+    component: AchievementCategoryEdit,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/prestasi',
+    name: 'staff-achievements',
+    component: AchievementIndex,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/prestasi/create',
+    name: 'staff-achievements-create',
+    component: AchievementCreate,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/prestasi/:id',
+    name: 'staff.prestasi.show',
+    component: AchievementShow,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/prestasi/:id/edit',
+    name: 'staff-achievements-edit',
+    component: AchievementEdit,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/penanganan',
+    name: 'staff-interventions',
+    component: InterventionIndex,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/penanganan/:id',
+    name: 'staff-intervention-show',
+    component: InterventionShow,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/penanganan/:id/edit',
+    name: 'staff-intervention-edit',
+    component: InterventionEdit,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/staff/laporan',
+    name: 'staff-reports',
+    component: ReportIndex,
+    meta: {
+      requiresAuth: true,
+      role: 'staf'
+    }
+  },
+  {
+    path: '/siswa/laporan',
+    name: 'student-reports',
+    component: ReportIndex,
+    meta: {
+      requiresAuth: true,
+      role: 'siswa'
+    }
+  },
+  
 
   
 
