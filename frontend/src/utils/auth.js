@@ -1,95 +1,75 @@
-// ================================
-// AMBIL USER YANG SEDANG LOGIN
-// ================================
+// user
 
 export const getUser = () => {
-  const userData = localStorage.getItem('user')
+  const userData = localStorage.getItem("user");
 
   if (!userData) {
-    return null
+    return null;
   }
 
   try {
-    return JSON.parse(userData)
+    return JSON.parse(userData);
   } catch (error) {
-    console.error('Data user tidak valid:', error)
+    console.error("Data user tidak valid:", error);
 
-    localStorage.removeItem('user')
+    localStorage.removeItem("user");
 
-    return null
+    return null;
   }
-}
+};
 
-
-// ================================
-// AMBIL TOKEN
-// ================================
+// token
 
 export const getToken = () => {
-  return localStorage.getItem('token')
-}
+  return localStorage.getItem("token");
+};
 
-
-// ================================
-// CEK SUDAH LOGIN ATAU BELUM
-// ================================
+// status login
 
 export const isAuthenticated = () => {
-  return !!getToken() && !!getUser()
-}
+  return !!getToken() && !!getUser();
+};
 
-
-// ================================
-// CEK ROLE SISWA
-// ================================
+// role student
 
 export const isStudent = () => {
-  const user = getUser()
+  return getUser()?.role === "student";
+};
 
-  return user?.role === 'siswa'
-}
-
-
-// ================================
-// CEK ROLE STAFF
-// ================================
+// role staff
 
 export const isStaff = () => {
-  const user = getUser()
+  return getUser()?.role === "staff";
+};
 
-  return user?.role === 'staf'
-}
-
-
-// ================================
-// AMBIL JABATAN STAFF
-// ================================
+// jabatan staff
 
 export const getStaffPosition = () => {
-  const user = getUser()
+  const user = getUser();
 
-  if (user?.role !== 'staf') {
-    return null
+  if (user?.role !== "staff") {
+    return null;
   }
 
-  return user?.staff?.jabatan ?? null
-}
+  return user?.staff?.jabatan ?? null;
+};
 
-
-// ================================
-// CEK JABATAN STAFF
-// ================================
+// cek jabatan staff
 
 export const hasStaffPosition = (position) => {
-  return getStaffPosition() === position
-}
+  return getStaffPosition() === position;
+};
 
+// simpan session
 
-// ================================
-// LOGOUT
-// ================================
+export const saveSession = (token, user) => {
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
+// hapus session
 
 export const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
-}
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+};

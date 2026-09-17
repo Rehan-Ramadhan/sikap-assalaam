@@ -63,6 +63,7 @@
       <div class="filter-card">
         <div class="search-box">
           <Search :size="19" />
+
           <input
             v-model="search"
             type="text"
@@ -88,107 +89,130 @@
         </div>
       </div>
 
+      <!-- Loading -->
+      <div v-if="loading" class="state-card">
+        <LoaderCircle :size="30" class="loading-icon" />
+        <strong>Memuat data penanganan...</strong>
+        <span>Silakan tunggu sebentar.</span>
+      </div>
+
+      <!-- Error -->
+      <div v-else-if="error" class="state-card">
+        <ClipboardList :size="40" />
+
+        <strong>Gagal memuat data</strong>
+
+        <span>{{ error }}</span>
+
+        <button class="secondary-button" @click="fetchInterventions">
+          Coba Lagi
+        </button>
+      </div>
+
       <!-- Table -->
-      <div class="table-card">
+      <div v-else class="table-card">
         <div class="table-wrapper">
           <table>
             <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Siswa</th>
-                    <th>Pelanggaran</th>
-                    <th>Tahap</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                </tr>
+              <tr>
+                <th>No</th>
+                <th>Siswa</th>
+                <th>Pelanggaran</th>
+                <th>Tahap</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
             </thead>
 
             <tbody>
-                <tr
-                    v-for="(intervention, index) in filteredInterventions"
-                    :key="intervention.id"
-                >
-                    <td>
-                    {{ index + 1 }}
-                    </td>
+              <tr
+                v-for="(intervention, index) in filteredInterventions"
+                :key="intervention.id"
+              >
+                <td>
+                  {{ index + 1 }}
+                </td>
 
-                    <!-- Siswa -->
-                    <td>
-                    <div class="student-info">
-                        <div class="student-avatar">
-                        {{ getInitial(intervention.siswa.nama) }}
-                        </div>
-
-                        <div class="student-details">
-                        <strong>{{ intervention.siswa.nama }}</strong>
-                        <span>{{ intervention.siswa.nis }}</span>
-                        </div>
+                <!-- Siswa -->
+                <td>
+                  <div class="student-info">
+                    <div class="student-avatar">
+                      {{ getInitial(intervention.siswa.nama) }}
                     </div>
-                    </td>
 
-                    <!-- Pelanggaran -->
-                    <td>
-                    <div class="violation-info">
-                        <strong>{{ intervention.pelanggaran }}</strong>
-                        <span>{{ intervention.poin }} poin</span>
+                    <div class="student-details">
+                      <strong>{{ intervention.siswa.nama }}</strong>
+                      <span>{{ intervention.siswa.nis }}</span>
                     </div>
-                    </td>
+                  </div>
+                </td>
 
-                    <!-- Tahap -->
-                    <td>
-                    <span
-                        class="stage-badge"
-                        :class="getStageClass(intervention.tahap)"
+                <!-- Pelanggaran -->
+                <td>
+                  <div class="violation-info">
+                    <strong>{{ intervention.pelanggaran }}</strong>
+                    <span>{{ intervention.poin }} poin</span>
+                  </div>
+                </td>
+
+                <!-- Tahap -->
+                <td>
+                  <span
+                    class="stage-badge"
+                    :class="getStageClass(intervention.tahap)"
+                  >
+                    {{ getStageLabel(intervention.tahap) }}
+                  </span>
+                </td>
+
+                <!-- Status -->
+                <td>
+                  <span
+                    class="status-badge"
+                    :class="getStatusClass(intervention.status)"
+                  >
+                    <span class="status-dot"></span>
+                    {{ getStatusLabel(intervention.status) }}
+                  </span>
+                </td>
+
+                <!-- Aksi -->
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      class="action-button view"
+                      title="Lihat detail"
+                      @click="goToShow(intervention.id)"
                     >
-                        {{ getStageLabel(intervention.tahap) }}
-                    </span>
-                    </td>
+                      <Eye :size="17" />
+                    </button>
 
-                    <!-- Status -->
-                    <td>
-                    <span
-                        class="status-badge"
-                        :class="getStatusClass(intervention.status)"
+                    <button
+                      v-if="intervention.status !== 'selesai'"
+                      class="action-button edit"
+                      title="Edit penanganan"
+                      @click="goToEdit(intervention.id)"
                     >
-                        <span class="status-dot"></span>
-                        {{ getStatusLabel(intervention.status) }}
+                      <Pencil :size="17" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr v-if="filteredInterventions.length === 0">
+                <td colspan="6">
+                  <div class="empty-state">
+                    <ClipboardList :size="40" />
+
+                    <strong>Data penanganan tidak ditemukan</strong>
+
+                    <span>
+                      Coba ubah kata pencarian atau filter yang digunakan.
                     </span>
-                    </td>
-
-                    <!-- Aksi -->
-                    <td>
-                    <div class="action-buttons">
-                        <button
-                        class="action-button view"
-                        title="Lihat detail"
-                        @click="goToShow(intervention.id)"
-                        >
-                        <Eye :size="17" />
-                        </button>
-
-                        <button
-                        class="action-button edit"
-                        title="Edit penanganan"
-                        @click="goToEdit(intervention.id)"
-                        >
-                        <Pencil :size="17" />
-                        </button>
-                    </div>
-                    </td>
-                </tr>
-
-                <!-- Empty State -->
-                <tr v-if="filteredInterventions.length === 0">
-                    <td colspan="6">
-                    <div class="empty-state">
-                        <ClipboardList :size="40" />
-                        <strong>Data penanganan tidak ditemukan</strong>
-                        <span>
-                        Coba ubah kata pencarian atau filter yang digunakan.
-                        </span>
-                    </div>
-                    </td>
-                </tr>
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -198,8 +222,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import {
   ClipboardList,
@@ -208,111 +232,114 @@ import {
   Users,
   Search,
   Eye,
-  Pencil
-} from 'lucide-vue-next'
+  Pencil,
+  LoaderCircle,
+} from "lucide-vue-next";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
-const router = useRouter()
+const router = useRouter();
 
-const search = ref('')
-const selectedStage = ref('')
-const selectedStatus = ref('')
+const loading = ref(true);
+const error = ref("");
+
+const search = ref("");
+const selectedStage = ref("");
+const selectedStatus = ref("");
+
+const interventions = ref([]);
 
 /*
 |--------------------------------------------------------------------------
-| Dummy Data
+| Fetch
 |--------------------------------------------------------------------------
-| Data ini sementara untuk frontend.
-| Nanti akan diganti dengan response dari API Laravel.
 */
 
-const interventions = ref([
-  {
-    id: 1,
-    siswa: {
-      nama: 'Ahmad Fauzan',
-      nis: '2024001'
-    },
-    pelanggaran: 'Terlambat masuk sekolah',
-    poin: 10,
-    tahap: 'wali_kelas',
-    petugas: 'Budi Santoso',
-    jabatan: 'Wali Kelas',
-    status: 'diproses',
-    tanggalMulai: '10 Sep 2026'
-  },
-  {
-    id: 2,
-    siswa: {
-      nama: 'Rizky Ramadhan',
-      nis: '2024002'
-    },
-    pelanggaran: 'Tidak mengikuti kegiatan sekolah',
-    poin: 20,
-    tahap: 'bk',
-    petugas: 'Siti Aminah',
-    jabatan: 'BK',
-    status: 'menunggu',
-    tanggalMulai: '9 Sep 2026'
-  },
-  {
-    id: 3,
-    siswa: {
-      nama: 'Dimas Saputra',
-      nis: '2024003'
-    },
-    pelanggaran: 'Membawa barang terlarang',
-    poin: 30,
-    tahap: 'kesiswaan',
-    petugas: 'Andi Pratama',
-    jabatan: 'Kesiswaan',
-    status: 'diproses',
-    tanggalMulai: '8 Sep 2026'
-  },
-  {
-    id: 4,
-    siswa: {
-      nama: 'Fajar Maulana',
-      nis: '2024004'
-    },
-    pelanggaran: 'Bolos sekolah',
-    poin: 40,
-    tahap: 'kepala_sekolah',
-    petugas: 'Drs. Ahmad Hidayat',
-    jabatan: 'Kepala Sekolah',
-    status: 'selesai',
-    tanggalMulai: '5 Sep 2026'
-  },
-  {
-    id: 5,
-    siswa: {
-      nama: 'Raka Firmansyah',
-      nis: '2024005'
-    },
-    pelanggaran: 'Tidak menggunakan atribut lengkap',
-    poin: 10,
-    tahap: 'wali_kelas',
-    petugas: 'Budi Santoso',
-    jabatan: 'Wali Kelas',
-    status: 'selesai',
-    tanggalMulai: '3 Sep 2026'
-  },
-  {
-    id: 6,
-    siswa: {
-      nama: 'Ilham Maulana',
-      nis: '2024006'
-    },
-    pelanggaran: 'Pelanggaran tata tertib',
-    poin: 25,
-    tahap: 'bk',
-    petugas: 'Siti Aminah',
-    jabatan: 'BK',
-    status: 'menunggu',
-    tanggalMulai: '2 Sep 2026'
+const fetchInterventions = async () => {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const response = await api.get("/staff/interventions", {
+      params: {
+        per_page: 1000,
+      },
+    });
+
+    const data = response?.data?.data;
+
+    const items = Array.isArray(data) ? data : data?.data || [];
+
+    interventions.value = items.map(normalizeIntervention);
+  } catch (err) {
+    console.error("Gagal mengambil data penanganan:", err);
+
+    error.value =
+      err?.response?.data?.message ||
+      "Terjadi kesalahan saat mengambil data penanganan.";
+  } finally {
+    loading.value = false;
   }
-])
+};
+
+/*
+|--------------------------------------------------------------------------
+| Normalize
+|--------------------------------------------------------------------------
+*/
+
+const normalizeIntervention = (item) => {
+  const student = item?.student;
+  const user = student?.user;
+
+  const staff = item?.staff;
+  const staffUser = staff?.user;
+
+  const threshold = item?.threshold;
+
+  return {
+    id: item?.id,
+
+    siswa: {
+      nama: user?.name || user?.nama || student?.name || student?.nama || "-",
+
+      nis: student?.nis || "-",
+    },
+
+    pelanggaran:
+      item?.pelanggaran ||
+      item?.violation?.category?.nama_pelanggaran ||
+      item?.studentViolation?.category?.nama_pelanggaran ||
+      item?.student_violation?.category?.nama_pelanggaran ||
+      "-",
+
+    poin:
+      item?.poin ??
+      item?.poin_tercatat ??
+      item?.studentViolation?.poin_tercatat ??
+      item?.student_violation?.poin_tercatat ??
+      0,
+
+    tahap: item?.tahap || "-",
+
+    petugas:
+      staffUser?.name || staffUser?.nama || staff?.name || staff?.nama || "-",
+
+    jabatan: staff?.jabatan || staff?.position || "-",
+
+    status: item?.status || "-",
+
+    tanggalMulai: formatDate(item?.tanggal_mulai),
+
+    tanggalSelesai: formatDate(item?.tanggal_selesai),
+
+    threshold:
+      threshold?.poin != null
+        ? `${threshold.poin} poin`
+        : threshold?.nama || threshold?.name || "-",
+  };
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -321,48 +348,47 @@ const interventions = ref([
 */
 
 const totalInterventions = computed(() => {
-  return interventions.value.length
-})
+  return interventions.value.length;
+});
 
 const waitingCount = computed(() => {
-  return interventions.value.filter(
-    item => item.status === 'menunggu'
-  ).length
-})
+  return interventions.value.filter((item) => item.status === "menunggu")
+    .length;
+});
 
 const completedCount = computed(() => {
-  return interventions.value.filter(
-    item => item.status === 'selesai'
-  ).length
-})
+  return interventions.value.filter((item) => item.status === "selesai").length;
+});
 
 const handledStudentCount = computed(() => {
   return new Set(
-    interventions.value.map(item => item.siswa.nis)
-  ).size
-})
+    interventions.value.map((item) => item.siswa.nis).filter(Boolean),
+  ).size;
+});
 
 const filteredInterventions = computed(() => {
-  const keyword = search.value.toLowerCase().trim()
+  const keyword = search.value.toLowerCase().trim();
 
-  return interventions.value.filter(item => {
+  return interventions.value.filter((item) => {
+    const nama = item.siswa.nama.toLowerCase();
+    const nis = item.siswa.nis.toLowerCase();
+    const pelanggaran = item.pelanggaran.toLowerCase();
+
     const matchesSearch =
       !keyword ||
-      item.siswa.nama.toLowerCase().includes(keyword) ||
-      item.siswa.nis.toLowerCase().includes(keyword) ||
-      item.pelanggaran.toLowerCase().includes(keyword)
+      nama.includes(keyword) ||
+      nis.includes(keyword) ||
+      pelanggaran.includes(keyword);
 
     const matchesStage =
-      !selectedStage.value ||
-      item.tahap === selectedStage.value
+      !selectedStage.value || item.tahap === selectedStage.value;
 
     const matchesStatus =
-      !selectedStatus.value ||
-      item.status === selectedStatus.value
+      !selectedStatus.value || item.status === selectedStatus.value;
 
-    return matchesSearch && matchesStage && matchesStatus
-  })
-})
+    return matchesSearch && matchesStage && matchesStatus;
+  });
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -370,45 +396,61 @@ const filteredInterventions = computed(() => {
 |--------------------------------------------------------------------------
 */
 
-const getInitial = name => {
-  if (!name) return '?'
+const getInitial = (name) => {
+  if (!name) return "?";
 
   return name
-    .split(' ')
-    .map(word => word.charAt(0))
+    .split(" ")
+    .map((word) => word.charAt(0))
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
+    .join("")
+    .toUpperCase();
+};
 
-const getStageLabel = stage => {
+const getStageLabel = (stage) => {
   const labels = {
-    wali_kelas: 'Wali Kelas',
-    bk: 'BK',
-    kesiswaan: 'Kesiswaan',
-    kepala_sekolah: 'Kepala Sekolah'
+    wali_kelas: "Wali Kelas",
+    bk: "BK",
+    kesiswaan: "Kesiswaan",
+    kepala_sekolah: "Kepala Sekolah",
+  };
+
+  return labels[stage] || stage;
+};
+
+const getStageClass = (stage) => {
+  return `stage-${stage}`;
+};
+
+const getStatusLabel = (status) => {
+  const labels = {
+    menunggu: "Menunggu",
+    diproses: "Diproses",
+    selesai: "Selesai",
+  };
+
+  return labels[status] || status;
+};
+
+const getStatusClass = (status) => {
+  return `status-${status}`;
+};
+
+const formatDate = (value) => {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
   }
 
-  return labels[stage] || stage
-}
-
-const getStageClass = stage => {
-  return `stage-${stage}`
-}
-
-const getStatusLabel = status => {
-  const labels = {
-    menunggu: 'Menunggu',
-    diproses: 'Diproses',
-    selesai: 'Selesai'
-  }
-
-  return labels[status] || status
-}
-
-const getStatusClass = status => {
-  return `status-${status}`
-}
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -416,21 +458,21 @@ const getStatusClass = status => {
 |--------------------------------------------------------------------------
 */
 
-const goToShow = id => {
-  router.push(`/staff/penanganan/${id}`)
-}
+const goToShow = (id) => {
+  router.push(`/staf/penanganan/${id}`);
+};
 
-const goToEdit = id => {
-  router.push(`/staff/penanganan/${id}/edit`)
-}
+const goToEdit = (id) => {
+  router.push(`/staf/penanganan/${id}/edit`);
+};
+
+onMounted(fetchInterventions);
 </script>
 
 <style scoped>
 .page-container {
   width: 100%;
 }
-
-/* Header */
 
 .page-header {
   display: flex;
@@ -452,8 +494,6 @@ const goToEdit = id => {
   font-size: 14px;
 }
 
-/* Statistics */
-
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -465,13 +505,10 @@ const goToEdit = id => {
   height: 74px;
   min-height: 0;
   box-sizing: border-box;
-
   display: flex;
   align-items: center;
   gap: 11px;
-
   padding: 12px 15px;
-
   background: white;
   border: 1px solid #e8ebf2;
   border-radius: 10px;
@@ -522,8 +559,6 @@ const goToEdit = id => {
   color: #172033;
   font-size: 22px;
 }
-
-/* Filter */
 
 .filter-card {
   display: flex;
@@ -585,8 +620,6 @@ const goToEdit = id => {
   cursor: pointer;
 }
 
-/* Table */
-
 .table-card {
   overflow: hidden;
   background: #ffffff;
@@ -596,7 +629,7 @@ const goToEdit = id => {
 
 .table-wrapper {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 table {
@@ -633,8 +666,6 @@ tbody tr:last-child td {
 tbody tr:hover {
   background: #f8fbff;
 }
-
-/* Student */
 
 .student-info {
   display: flex;
@@ -674,8 +705,6 @@ tbody tr:hover {
   font-size: 11px;
 }
 
-/* Violation */
-
 .violation-info {
   display: flex;
   flex-direction: column;
@@ -693,22 +722,6 @@ tbody tr:hover {
   color: #94a3b8;
   font-size: 11px;
 }
-
-/* Point */
-
-.point-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 9px;
-  border-radius: 6px;
-  background: #eff6ff;
-  color: #2563eb;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* Stage */
 
 .stage-badge {
   display: inline-flex;
@@ -739,28 +752,6 @@ tbody tr:hover {
   background: #fdf2f8;
   color: #db2777;
 }
-
-/* Staff */
-
-.staff-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 120px;
-}
-
-.staff-info strong {
-  color: #334155;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.staff-info span {
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-/* Status */
 
 .status-badge {
   display: inline-flex;
@@ -806,8 +797,6 @@ tbody tr:hover {
   background: #22c55e;
 }
 
-/* Actions */
-
 .action-buttons {
   display: flex;
   align-items: center;
@@ -844,7 +833,58 @@ tbody tr:hover {
   background: #fef3c7;
 }
 
-/* Empty */
+.state-card {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e5eaf1;
+  border-radius: 12px;
+  color: #94a3b8;
+}
+
+.state-card strong {
+  color: #475569;
+  font-size: 14px;
+}
+
+.state-card span {
+  font-size: 12px;
+}
+
+.secondary-button {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 0 15px;
+  border: 1px solid #dce3ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: #f8fafc;
+}
+
+.loading-icon {
+  color: #2563eb;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .empty-state {
   min-height: 220px;
@@ -870,8 +910,6 @@ tbody tr:hover {
   color: #94a3b8;
   font-size: 12px;
 }
-
-/* Responsive */
 
 @media (max-width: 1100px) {
   .stats-grid {

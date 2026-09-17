@@ -90,6 +90,14 @@
         </select>
       </div>
 
+      <!-- Error -->
+      <div v-if="errorMessage" class="alert-error">
+        <CircleAlert :size="18" />
+        <span>{{ errorMessage }}</span>
+
+        <button @click="loadCategories">Coba lagi</button>
+      </div>
+
       <!-- Table -->
       <div class="table-card">
         <div class="table-header">
@@ -99,7 +107,12 @@
           </div>
         </div>
 
-        <div class="table-wrapper">
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Memuat kategori prestasi...</p>
+        </div>
+
+        <div v-else class="table-wrapper">
           <table>
             <thead>
               <tr>
@@ -144,14 +157,12 @@
                 </td>
 
                 <td>
-                  <span class="point-badge">
-                    +{{ category.poin }}
-                  </span>
+                  <span class="point-badge"> +{{ category.poin }} </span>
                 </td>
 
                 <td>
                   <span class="description">
-                    {{ category.deskripsi || '-' }}
+                    {{ category.deskripsi || "-" }}
                   </span>
                 </td>
 
@@ -161,7 +172,7 @@
                     :class="category.status ? 'active' : 'inactive'"
                   >
                     <span class="status-dot"></span>
-                    {{ category.status ? 'Aktif' : 'Nonaktif' }}
+                    {{ category.status ? "Aktif" : "Nonaktif" }}
                   </span>
                 </td>
 
@@ -186,6 +197,7 @@
                     <button
                       class="action-btn delete"
                       title="Hapus"
+                      :disabled="deletingId === category.id"
                       @click="deleteCategory(category)"
                     >
                       <Trash2 :size="17" />
@@ -202,6 +214,7 @@
                     </div>
 
                     <h3>Kategori tidak ditemukan</h3>
+
                     <p>
                       Tidak ada kategori prestasi yang sesuai dengan pencarian.
                     </p>
@@ -217,12 +230,14 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-import AppLayout from '../../../../layouts/AppLayout.vue'
+import AppLayout from "../../../../layouts/AppLayout.vue";
+import api from "../../../../utils/api";
 
 import {
+  CircleAlert,
   CircleCheck,
   CircleX,
   Eye,
@@ -231,77 +246,83 @@ import {
   Plus,
   Search,
   Trash2,
-  Trophy
-} from 'lucide-vue-next'
+  Trophy,
+} from "lucide-vue-next";
 
-const router = useRouter()
-
-/*
-|--------------------------------------------------------------------------
-| Filter
-|--------------------------------------------------------------------------
-*/
-
-const search = ref('')
-const filterTingkat = ref('')
-const filterStatus = ref('')
+const router = useRouter();
 
 /*
 |--------------------------------------------------------------------------
-| Dummy Data
+| State
 |--------------------------------------------------------------------------
 */
 
-const categories = ref([
-  {
-    id: 1,
-    namaPrestasi: 'Juara 1 Lomba Akademik',
-    poin: 50,
-    tingkat: 'sekolah',
-    deskripsi: 'Prestasi juara pertama dalam lomba akademik tingkat sekolah.',
-    status: true
-  },
-  {
-    id: 2,
-    namaPrestasi: 'Juara 1 Lomba Tingkat Kecamatan',
-    poin: 75,
-    tingkat: 'kecamatan',
-    deskripsi: 'Prestasi juara pertama dalam perlombaan tingkat kecamatan.',
-    status: true
-  },
-  {
-    id: 3,
-    namaPrestasi: 'Juara 2 Olimpiade Kabupaten',
-    poin: 100,
-    tingkat: 'kabupaten',
-    deskripsi: 'Prestasi juara kedua dalam olimpiade tingkat kabupaten.',
-    status: true
-  },
-  {
-    id: 4,
-    namaPrestasi: 'Juara 1 Kompetisi Provinsi',
-    poin: 150,
-    tingkat: 'provinsi',
-    deskripsi: 'Prestasi juara pertama dalam kompetisi tingkat provinsi.',
-    status: true
-  },
-  {
-    id: 5,
-    namaPrestasi: 'Juara Nasional',
-    poin: 250,
-    tingkat: 'nasional',
-    deskripsi: 'Prestasi dalam kompetisi tingkat nasional.',
-    status: true
-  },
-  {
-    id: 6,
-    namaPrestasi: 'Juara Internasional',
-    poin: 500,
-    tingkat: 'internasional',
-    deskripsi: 'Prestasi dalam kompetisi tingkat internasional.',
-    status: false
+const categories = ref([]);
+
+const search = ref("");
+const filterTingkat = ref("");
+const filterStatus = ref("");
+
+const loading = ref(false);
+const deletingId = ref(null);
+const errorMessage = ref("");
+
+/*
+|--------------------------------------------------------------------------
+| Load Data
+|--------------------------------------------------------------------------
+*/
+
+const loadCategories = async () => {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await api.get("/staff/achievement-categories");
+
+    categories.value = normalizeCategories(response.data);
+  } catch (error) {
+    console.error("Gagal mengambil kategori prestasi:", error);
+
+    errorMessage.value =
+      error.response?.data?.message || "Gagal memuat kategori prestasi.";
+  } finally {
+    loading.value = false;
   }
-])
+};
+
+/*
+|--------------------------------------------------------------------------
+| Normalize Response
+|--------------------------------------------------------------------------
+*/
+
+const normalizeCategories = (response) => {
+  if (Array.isArray(response)) {
+    return response.map(normalizeCategory);
+  }
+
+  if (Array.isArray(response?.data)) {
+    return response.data.map(normalizeCategory);
+  }
+
+  if (response?.data?.data && Array.isArray(response.data.data)) {
+    return response.data.data.map(normalizeCategory);
+  }
+
+  return [];
+};
+
+const normalizeCategory = (category) => {
+  return {
+    id: category.id,
+    namaPrestasi: category.nama_prestasi ?? category.namaPrestasi ?? "",
+    poin: Number(category.poin ?? 0),
+    tingkat: category.tingkat ?? "",
+    deskripsi: category.deskripsi ?? "",
+    status: Boolean(category.status),
+  };
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -310,46 +331,41 @@ const categories = ref([
 */
 
 const activeCount = computed(() => {
-  return categories.value.filter(category => category.status).length
-})
+  return categories.value.filter((category) => category.status).length;
+});
 
 const inactiveCount = computed(() => {
-  return categories.value.filter(category => !category.status).length
-})
+  return categories.value.filter((category) => !category.status).length;
+});
 
 const highestPoint = computed(() => {
-  if (categories.value.length === 0) return 0
+  if (categories.value.length === 0) return 0;
 
   return Math.max(
-    ...categories.value.map(category => category.poin)
-  )
-})
+    ...categories.value.map((category) => Number(category.poin) || 0),
+  );
+});
 
 const filteredCategories = computed(() => {
-  const keyword = search.value.trim().toLowerCase()
+  const keyword = search.value.trim().toLowerCase();
 
-  return categories.value.filter(category => {
+  return categories.value.filter((category) => {
     const matchesSearch =
       !keyword ||
       category.namaPrestasi.toLowerCase().includes(keyword) ||
-      category.deskripsi?.toLowerCase().includes(keyword)
+      category.deskripsi?.toLowerCase().includes(keyword);
 
     const matchesTingkat =
-      !filterTingkat.value ||
-      category.tingkat === filterTingkat.value
+      !filterTingkat.value || category.tingkat === filterTingkat.value;
 
     const matchesStatus =
       !filterStatus.value ||
-      (filterStatus.value === 'aktif' && category.status) ||
-      (filterStatus.value === 'nonaktif' && !category.status)
+      (filterStatus.value === "aktif" && category.status) ||
+      (filterStatus.value === "nonaktif" && !category.status);
 
-    return (
-      matchesSearch &&
-      matchesTingkat &&
-      matchesStatus
-    )
-  })
-})
+    return matchesSearch && matchesTingkat && matchesStatus;
+  });
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -359,16 +375,16 @@ const filteredCategories = computed(() => {
 
 const formatTingkat = (tingkat) => {
   const names = {
-    sekolah: 'Sekolah',
-    kecamatan: 'Kecamatan',
-    kabupaten: 'Kabupaten',
-    provinsi: 'Provinsi',
-    nasional: 'Nasional',
-    internasional: 'Internasional'
-  }
+    sekolah: "Sekolah",
+    kecamatan: "Kecamatan",
+    kabupaten: "Kabupaten",
+    provinsi: "Provinsi",
+    nasional: "Nasional",
+    internasional: "Internasional",
+  };
 
-  return names[tingkat] || tingkat
-}
+  return names[tingkat] || tingkat;
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -377,16 +393,16 @@ const formatTingkat = (tingkat) => {
 */
 
 const goToCreate = () => {
-  router.push('/staff/prestasi/kategori/create')
-}
+  router.push("/staf/prestasi/kategori/create");
+};
 
 const goToShow = (id) => {
-  router.push(`/staff/prestasi/kategori/${id}`)
-}
+  router.push(`/staf/prestasi/kategori/${id}`);
+};
 
 const goToEdit = (id) => {
-  router.push(`/staff/prestasi/kategori/${id}/edit`)
-}
+  router.push(`/staf/prestasi/kategori/${id}/edit`);
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -394,17 +410,43 @@ const goToEdit = (id) => {
 |--------------------------------------------------------------------------
 */
 
-const deleteCategory = (category) => {
+const deleteCategory = async (category) => {
   const confirmed = confirm(
-    `Apakah kamu yakin ingin menghapus kategori "${category.namaPrestasi}"?`
-  )
+    `Apakah kamu yakin ingin menghapus kategori "${category.namaPrestasi}"?`,
+  );
 
-  if (!confirmed) return
+  if (!confirmed) return;
 
-  categories.value = categories.value.filter(
-    item => item.id !== category.id
-  )
-}
+  deletingId.value = category.id;
+  errorMessage.value = "";
+
+  try {
+    await api.delete(`/staff/achievement-categories/${category.id}`);
+
+    categories.value = categories.value.filter(
+      (item) => item.id !== category.id,
+    );
+
+    alert("Kategori prestasi berhasil dihapus.");
+  } catch (error) {
+    console.error("Gagal menghapus kategori prestasi:", error);
+
+    errorMessage.value =
+      error.response?.data?.message || "Kategori prestasi gagal dihapus.";
+  } finally {
+    deletingId.value = null;
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Mounted
+|--------------------------------------------------------------------------
+*/
+
+onMounted(() => {
+  loadCategories();
+});
 </script>
 
 <style scoped>
@@ -571,6 +613,32 @@ const deleteCategory = (category) => {
   outline: none;
 }
 
+/* Alert */
+
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 13px 15px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.alert-error button {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* Table */
 
 .table-card {
@@ -634,6 +702,34 @@ tbody tr:last-child td {
 
 tbody tr:hover {
   background: #fafcff;
+}
+
+/* Loading */
+
+.loading-state {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #718096;
+  font-size: 13px;
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Achievement */
@@ -777,6 +873,11 @@ tbody tr:hover {
   justify-content: center;
   cursor: pointer;
   transition: 0.2s;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .action-btn.view {

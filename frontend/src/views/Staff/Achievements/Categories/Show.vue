@@ -3,8 +3,8 @@
     <div class="page-header">
       <div class="header-left">
         <button class="btn-back" @click="goBack">
-            <ArrowLeft :size="18" />
-            <span>Kembali</span>
+          <ArrowLeft :size="18" />
+          <span>Kembali</span>
         </button>
 
         <div>
@@ -14,24 +14,35 @@
       </div>
 
       <div v-if="category" class="header-actions">
-       <button
-            class="btn btn-warning"
-            @click="goEdit"
-            >
-            <Pencil :size="17" />
-            <span>Edit Kategori</span>
+        <button class="btn btn-warning" @click="goEdit">
+          <Pencil :size="17" />
+          <span>Edit Kategori</span>
         </button>
       </div>
     </div>
 
-    <!-- Loading / Not Found -->
-    <div v-if="!category" class="empty-state">
+    <!-- Loading -->
+    <div v-if="loading" class="empty-state">
+      <div class="loading-spinner"></div>
+
+      <h3>Memuat kategori...</h3>
+
+      <p>Data kategori prestasi sedang diambil.</p>
+    </div>
+
+    <!-- Not Found / Error -->
+    <div v-else-if="!category" class="empty-state">
       <div class="empty-icon">
-         <FolderOpen :size="42" :stroke-width="1.7" />
+        <FolderOpen :size="42" :stroke-width="1.7" />
       </div>
+
       <h3>Kategori tidak ditemukan</h3>
+
       <p>
-        Data kategori prestasi yang kamu cari tidak tersedia.
+        {{
+          errorMessage ||
+          "Data kategori prestasi yang kamu cari tidak tersedia."
+        }}
       </p>
 
       <button class="btn btn-primary" @click="goBack">
@@ -42,11 +53,10 @@
     <template v-else>
       <!-- Main Info -->
       <div class="detail-grid">
-
         <!-- Left Card -->
         <div class="card category-profile-card">
           <div class="category-icon">
-              <Trophy :size="36" :stroke-width="1.8" />
+            <Trophy :size="36" :stroke-width="1.8" />
           </div>
 
           <h2>{{ category.namaPrestasi }}</h2>
@@ -55,11 +65,12 @@
             class="status-badge"
             :class="category.status ? 'status-active' : 'status-inactive'"
           >
-            {{ category.status ? 'Aktif' : 'Nonaktif' }}
+            {{ category.status ? "Aktif" : "Nonaktif" }}
           </span>
 
           <div class="category-level">
             <span class="level-label">Tingkat</span>
+
             <strong>
               {{ formatTingkat(category.tingkat) }}
             </strong>
@@ -73,11 +84,8 @@
           </div>
 
           <div class="detail-list">
-
             <div class="detail-item">
-              <span class="detail-label">
-                Nama Prestasi
-              </span>
+              <span class="detail-label"> Nama Prestasi </span>
 
               <span class="detail-value">
                 {{ category.namaPrestasi }}
@@ -85,9 +93,7 @@
             </div>
 
             <div class="detail-item">
-              <span class="detail-label">
-                Tingkat
-              </span>
+              <span class="detail-label"> Tingkat </span>
 
               <span class="detail-value">
                 <span class="level-badge">
@@ -97,46 +103,33 @@
             </div>
 
             <div class="detail-item">
-              <span class="detail-label">
-                Poin
-              </span>
+              <span class="detail-label"> Poin </span>
 
               <span class="detail-value">
-                <span class="point-badge">
-                  +{{ category.poin }}
-                </span>
+                <span class="point-badge"> +{{ category.poin }} </span>
               </span>
             </div>
 
             <div class="detail-item">
-              <span class="detail-label">
-                Status
-              </span>
+              <span class="detail-label"> Status </span>
 
               <span class="detail-value">
                 <span
                   class="status-badge"
-                  :class="
-                    category.status
-                      ? 'status-active'
-                      : 'status-inactive'
-                  "
+                  :class="category.status ? 'status-active' : 'status-inactive'"
                 >
-                  {{ category.status ? 'Aktif' : 'Nonaktif' }}
+                  {{ category.status ? "Aktif" : "Nonaktif" }}
                 </span>
               </span>
             </div>
 
             <div class="detail-item detail-description">
-              <span class="detail-label">
-                Deskripsi
-              </span>
+              <span class="detail-label"> Deskripsi </span>
 
               <span class="detail-value description-text">
-                {{ category.deskripsi || 'Tidak ada deskripsi.' }}
+                {{ category.deskripsi || "Tidak ada deskripsi." }}
               </span>
             </div>
-
           </div>
         </div>
       </div>
@@ -144,21 +137,21 @@
       <!-- Info -->
       <div class="card info-card">
         <div class="info-icon">
-            <Info :size="22" :stroke-width="2" />
+          <Info :size="22" :stroke-width="2" />
         </div>
 
         <div>
           <h3>Tentang kategori prestasi</h3>
 
           <p>
-            Kategori ini digunakan sebagai acuan ketika mencatat
-            prestasi siswa. Nilai poin akan tersimpan pada data
-            prestasi siswa saat kategori digunakan.
+            Kategori ini digunakan sebagai acuan ketika mencatat prestasi siswa.
+            Nilai poin akan tersimpan pada data prestasi siswa saat kategori
+            digunakan.
           </p>
 
           <p v-if="!category.status">
-            Kategori saat ini nonaktif sehingga sebaiknya tidak
-            digunakan untuk pencatatan prestasi baru.
+            Kategori saat ini nonaktif sehingga sebaiknya tidak digunakan untuk
+            pencatatan prestasi baru.
           </p>
         </div>
       </div>
@@ -167,100 +160,119 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, onMounted } from "vue";
 import {
   ArrowLeft,
+  CircleAlert,
   Pencil,
   Trophy,
   Info,
-  FolderOpen
-} from 'lucide-vue-next'
-import { useRoute, useRouter } from 'vue-router'
+  FolderOpen,
+} from "lucide-vue-next";
+import { useRoute, useRouter } from "vue-router";
 
-import AppLayout from '../../../../layouts/AppLayout.vue'
+import AppLayout from "../../../../layouts/AppLayout.vue";
+import api from "../../../../utils/api";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const categories = [
-  {
-    id: 1,
-    namaPrestasi: 'Juara 1 Lomba Coding',
-    poin: 20,
-    tingkat: 'sekolah',
-    deskripsi: 'Prestasi juara pertama dalam perlombaan coding tingkat sekolah.',
-    status: true
-  },
-  {
-    id: 2,
-    namaPrestasi: 'Juara 1 Olimpiade Matematika',
-    poin: 30,
-    tingkat: 'kecamatan',
-    deskripsi: 'Prestasi juara pertama pada olimpiade matematika tingkat kecamatan.',
-    status: true
-  },
-  {
-    id: 3,
-    namaPrestasi: 'Juara 2 Lomba Futsal',
-    poin: 25,
-    tingkat: 'kabupaten',
-    deskripsi: 'Prestasi juara kedua dalam kompetisi futsal tingkat kabupaten.',
-    status: true
-  },
-  {
-    id: 4,
-    namaPrestasi: 'Juara 1 Pencak Silat',
-    poin: 40,
-    tingkat: 'provinsi',
-    deskripsi: 'Prestasi juara pertama dalam kejuaraan pencak silat tingkat provinsi.',
-    status: true
-  },
-  {
-    id: 5,
-    namaPrestasi: 'Juara Nasional Robotik',
-    poin: 60,
-    tingkat: 'nasional',
-    deskripsi: 'Prestasi pada kompetisi robotik tingkat nasional.',
-    status: true
-  },
-  {
-    id: 6,
-    namaPrestasi: 'Finalis Kompetisi Internasional',
-    poin: 100,
-    tingkat: 'internasional',
-    deskripsi: 'Prestasi sebagai finalis dalam kompetisi tingkat internasional.',
-    status: false
+/*
+|--------------------------------------------------------------------------
+| State
+|--------------------------------------------------------------------------
+*/
+
+const category = ref(null);
+const loading = ref(false);
+const errorMessage = ref("");
+
+/*
+|--------------------------------------------------------------------------
+| Load Category
+|--------------------------------------------------------------------------
+*/
+
+const loadCategory = async () => {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await api.get(
+      `/staff/achievement-categories/${route.params.id}`,
+    );
+
+    const data = response.data?.data ?? response.data;
+
+    if (!data?.id) {
+      category.value = null;
+      return;
+    }
+
+    category.value = {
+      id: data.id,
+      namaPrestasi: data.nama_prestasi ?? data.namaPrestasi ?? "",
+      poin: Number(data.poin ?? 0),
+      tingkat: data.tingkat ?? "",
+      deskripsi: data.deskripsi ?? "",
+      status: Boolean(data.status),
+    };
+  } catch (error) {
+    console.error("Gagal mengambil detail kategori prestasi:", error);
+
+    category.value = null;
+
+    errorMessage.value =
+      error.response?.data?.message || "Gagal memuat detail kategori prestasi.";
+  } finally {
+    loading.value = false;
   }
-]
+};
 
-const category = computed(() => {
-  const id = Number(route.params.id)
-
-  return categories.find(item => item.id === id) || null
-})
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
 
 const formatTingkat = (tingkat) => {
   const labels = {
-    sekolah: 'Sekolah',
-    kecamatan: 'Kecamatan',
-    kabupaten: 'Kabupaten',
-    provinsi: 'Provinsi',
-    nasional: 'Nasional',
-    internasional: 'Internasional'
-  }
+    sekolah: "Sekolah",
+    kecamatan: "Kecamatan",
+    kabupaten: "Kabupaten",
+    provinsi: "Provinsi",
+    nasional: "Nasional",
+    internasional: "Internasional",
+  };
 
-  return labels[tingkat] || tingkat
-}
+  return labels[tingkat] || tingkat;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Navigation
+|--------------------------------------------------------------------------
+*/
 
 const goBack = () => {
-  router.push('/staff/prestasi/kategori')
-}
+  router.push("/staf/prestasi/kategori");
+};
 
 const goEdit = () => {
-  if (!category.value) return
+  if (!category.value) return;
 
-  router.push(`/staff/prestasi/kategori/${category.value.id}/edit`)
-}
+  router.push(`/staf/prestasi/kategori/${category.value.id}/edit`);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Mounted
+|--------------------------------------------------------------------------
+*/
+
+onMounted(() => {
+  loadCategory();
+});
 </script>
 
 <style scoped>
@@ -545,7 +557,24 @@ const goEdit = () => {
   color: #6b7280;
 }
 
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 14px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Responsive */
+
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;

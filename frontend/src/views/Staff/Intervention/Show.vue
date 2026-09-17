@@ -11,9 +11,7 @@
       <div class="page-header">
         <div>
           <h1>Detail Penanganan</h1>
-          <p>
-            Informasi lengkap mengenai proses penanganan siswa.
-          </p>
+          <p>Informasi lengkap mengenai proses penanganan siswa.</p>
         </div>
 
         <button
@@ -31,6 +29,17 @@
         <LoaderCircle :size="30" class="loading-icon" />
         <strong>Memuat data...</strong>
         <span>Silakan tunggu sebentar.</span>
+      </div>
+
+      <!-- Error -->
+      <div v-else-if="error" class="state-card">
+        <ClipboardList :size="40" />
+        <strong>Gagal memuat data</strong>
+        <span>{{ error }}</span>
+
+        <button class="secondary-button" @click="fetchIntervention">
+          Coba Lagi
+        </button>
       </div>
 
       <!-- Not Found -->
@@ -131,14 +140,14 @@
               <div class="detail-item">
                 <span>Tanggal Mulai</span>
                 <strong>
-                  {{ intervention.tanggalMulai }}
+                  {{ intervention.tanggalMulai || "-" }}
                 </strong>
               </div>
 
               <div class="detail-item">
                 <span>Tanggal Selesai</span>
                 <strong>
-                  {{ intervention.tanggalSelesai || '-' }}
+                  {{ intervention.tanggalSelesai || "-" }}
                 </strong>
               </div>
 
@@ -173,12 +182,10 @@
                 <strong>{{ intervention.pelanggaran }}</strong>
 
                 <div class="violation-meta">
-                  <span>
-                    {{ intervention.poin }} poin
-                  </span>
+                  <span> {{ intervention.poin }} poin </span>
 
                   <span>
-                    {{ intervention.tanggalPelanggaran }}
+                    {{ intervention.tanggalPelanggaran || "-" }}
                   </span>
                 </div>
               </div>
@@ -186,8 +193,9 @@
 
             <div class="note-box">
               <span>Catatan Penanganan</span>
+
               <p>
-                {{ intervention.catatan || 'Belum ada catatan.' }}
+                {{ intervention.catatan || "Belum ada catatan." }}
               </p>
             </div>
           </div>
@@ -198,18 +206,13 @@
           <div class="card-header">
             <div>
               <h3>Riwayat Penanganan</h3>
-              <p>
-                Riwayat perubahan status dan catatan penanganan.
-              </p>
+              <p>Riwayat perubahan status dan catatan penanganan.</p>
             </div>
 
             <History :size="21" />
           </div>
 
-          <div
-            v-if="intervention.logs.length > 0"
-            class="timeline"
-          >
+          <div v-if="intervention.logs.length > 0" class="timeline">
             <div
               v-for="(log, index) in intervention.logs"
               :key="log.id"
@@ -246,9 +249,7 @@
                   {{ log.catatan }}
                 </p>
 
-                <span v-else class="no-note">
-                  Tidak ada catatan.
-                </span>
+                <span v-else class="no-note"> Tidak ada catatan. </span>
               </div>
             </div>
           </div>
@@ -265,8 +266,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import {
   ArrowLeft,
@@ -277,234 +278,151 @@ import {
   BookOpen,
   School,
   AlertTriangle,
-  History
-} from 'lucide-vue-next'
+  History,
+} from "lucide-vue-next";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const loading = ref(true)
-const intervention = ref(null)
+const loading = ref(true);
+const error = ref("");
+const intervention = ref(null);
 
 /*
 |--------------------------------------------------------------------------
-| Dummy Data
+| Fetch
 |--------------------------------------------------------------------------
-| Sementara menggunakan data dummy.
-| Nanti struktur ini akan disesuaikan dengan response API Laravel.
 */
 
-const dummyData = [
-  {
-    id: 1,
+const fetchIntervention = async () => {
+  loading.value = true;
+  error.value = "";
+  intervention.value = null;
 
-    siswa: {
-      nama: 'Ahmad Fauzan',
-      nis: '2024001',
-      tingkat: 'Kelas 10',
-      jurusan: 'RPL',
-      kelas: '1'
-    },
+  try {
+    const response = await api.get(`/staff/interventions/${route.params.id}`);
 
-    pelanggaran: 'Terlambat masuk sekolah',
-    poin: 10,
-    tanggalPelanggaran: '10 Sep 2026',
+    const data = response?.data?.data;
 
-    tahap: 'wali_kelas',
-    status: 'diproses',
+    if (!data) {
+      intervention.value = null;
+      return;
+    }
 
-    petugas: 'Budi Santoso',
-    jabatan: 'Wali Kelas',
+    intervention.value = normalizeIntervention(data);
+  } catch (err) {
+    console.error("Gagal mengambil detail penanganan:", err);
 
-    threshold: '10 poin',
-
-    tanggalMulai: '10 Sep 2026',
-    tanggalSelesai: null,
-
-    catatan:
-      'Siswa diberikan pembinaan terkait kedisiplinan waktu masuk sekolah.',
-
-    logs: [
-      {
-        id: 1,
-        status: 'menunggu',
-        staff: 'Budi Santoso',
-        createdAt: '10 Sep 2026, 08:15',
-        catatan:
-          'Penanganan dibuat berdasarkan pencapaian threshold poin.'
-      },
-      {
-        id: 2,
-        status: 'diproses',
-        staff: 'Budi Santoso',
-        createdAt: '10 Sep 2026, 10:30',
-        catatan:
-          'Siswa telah diberikan pembinaan dan diminta untuk meningkatkan kedisiplinan.'
-      }
-    ]
-  },
-
-  {
-    id: 2,
-
-    siswa: {
-      nama: 'Rizky Ramadhan',
-      nis: '2024002',
-      tingkat: 'Kelas 11',
-      jurusan: 'TKR',
-      kelas: '2'
-    },
-
-    pelanggaran: 'Tidak mengikuti kegiatan sekolah',
-    poin: 20,
-    tanggalPelanggaran: '9 Sep 2026',
-
-    tahap: 'bk',
-    status: 'menunggu',
-
-    petugas: 'Siti Aminah',
-    jabatan: 'BK',
-
-    threshold: '20 poin',
-
-    tanggalMulai: '9 Sep 2026',
-    tanggalSelesai: null,
-
-    catatan: null,
-
-    logs: [
-      {
-        id: 3,
-        status: 'menunggu',
-        staff: 'Siti Aminah',
-        createdAt: '9 Sep 2026, 09:00',
-        catatan:
-          'Menunggu proses tindak lanjut dari petugas BK.'
-      }
-    ]
-  },
-
-  {
-    id: 3,
-
-    siswa: {
-      nama: 'Dimas Saputra',
-      nis: '2024003',
-      tingkat: 'Kelas 12',
-      jurusan: 'TSM',
-      kelas: '1'
-    },
-
-    pelanggaran: 'Membawa barang terlarang',
-    poin: 30,
-    tanggalPelanggaran: '8 Sep 2026',
-
-    tahap: 'kesiswaan',
-    status: 'diproses',
-
-    petugas: 'Andi Pratama',
-    jabatan: 'Kesiswaan',
-
-    threshold: '30 poin',
-
-    tanggalMulai: '8 Sep 2026',
-    tanggalSelesai: null,
-
-    catatan:
-      'Siswa sedang dalam proses pembinaan oleh bagian kesiswaan.',
-
-    logs: [
-      {
-        id: 4,
-        status: 'menunggu',
-        staff: 'Andi Pratama',
-        createdAt: '8 Sep 2026, 08:00',
-        catatan: null
-      },
-      {
-        id: 5,
-        status: 'diproses',
-        staff: 'Andi Pratama',
-        createdAt: '8 Sep 2026, 11:15',
-        catatan:
-          'Proses pembinaan siswa sedang dilakukan.'
-      }
-    ]
-  },
-
-  {
-    id: 4,
-
-    siswa: {
-      nama: 'Fajar Maulana',
-      nis: '2024004',
-      tingkat: 'Kelas 12',
-      jurusan: 'RPL',
-      kelas: '2'
-    },
-
-    pelanggaran: 'Bolos sekolah',
-    poin: 40,
-    tanggalPelanggaran: '5 Sep 2026',
-
-    tahap: 'kepala_sekolah',
-    status: 'selesai',
-
-    petugas: 'Drs. Ahmad Hidayat',
-    jabatan: 'Kepala Sekolah',
-
-    threshold: '40 poin',
-
-    tanggalMulai: '5 Sep 2026',
-    tanggalSelesai: '7 Sep 2026',
-
-    catatan:
-      'Penanganan telah selesai setelah dilakukan pembinaan bersama siswa dan orang tua.',
-
-    logs: [
-      {
-        id: 6,
-        status: 'menunggu',
-        staff: 'Drs. Ahmad Hidayat',
-        createdAt: '5 Sep 2026, 09:00',
-        catatan: null
-      },
-      {
-        id: 7,
-        status: 'diproses',
-        staff: 'Drs. Ahmad Hidayat',
-        createdAt: '6 Sep 2026, 10:00',
-        catatan:
-          'Dilakukan pertemuan dengan siswa dan orang tua.'
-      },
-      {
-        id: 8,
-        status: 'selesai',
-        staff: 'Drs. Ahmad Hidayat',
-        createdAt: '7 Sep 2026, 13:00',
-        catatan:
-          'Penanganan selesai dan siswa diberikan pembinaan lanjutan.'
-      }
-    ]
+    if (err?.response?.status === 404) {
+      intervention.value = null;
+    } else {
+      error.value =
+        err?.response?.data?.message ||
+        "Terjadi kesalahan saat mengambil detail penanganan.";
+    }
+  } finally {
+    loading.value = false;
   }
-]
+};
 
 /*
 |--------------------------------------------------------------------------
-| Load
+| Normalize
 |--------------------------------------------------------------------------
 */
 
-onMounted(() => {
-  const id = Number(route.params.id)
+const normalizeIntervention = (item) => {
+  const student = item?.student;
+  const user = student?.user;
 
-  intervention.value =
-    dummyData.find(item => item.id === id) || null
+  const staff = item?.staff;
+  const staffUser = staff?.user;
 
-  loading.value = false
-})
+  const threshold = item?.threshold;
+
+  const logs = Array.isArray(item?.logs) ? item.logs : [];
+
+  return {
+    id: item?.id,
+
+    siswa: {
+      nama: user?.name || user?.nama || student?.name || student?.nama || "-",
+
+      nis: student?.nis || "-",
+
+      tingkat: student?.tingkat ? `Kelas ${student.tingkat}` : "-",
+
+      jurusan: student?.jurusan || "-",
+
+      kelas: student?.nomor_kelas || student?.kelas || "-",
+    },
+
+    pelanggaran:
+      item?.pelanggaran ||
+      item?.violation?.category?.nama_pelanggaran ||
+      item?.studentViolation?.category?.nama_pelanggaran ||
+      item?.student_violation?.category?.nama_pelanggaran ||
+      "-",
+
+    poin:
+      item?.poin ??
+      item?.poin_tercatat ??
+      item?.studentViolation?.poin_tercatat ??
+      item?.student_violation?.poin_tercatat ??
+      0,
+
+    tanggalPelanggaran: formatDate(
+      item?.tanggal_pelanggaran ||
+        item?.studentViolation?.tanggal_kejadian ||
+        item?.student_violation?.tanggal_kejadian,
+    ),
+
+    tahap: item?.tahap || "-",
+
+    status: item?.status || "-",
+
+    petugas:
+      staffUser?.name || staffUser?.nama || staff?.name || staff?.nama || "-",
+
+    jabatan: staff?.jabatan || staff?.position || "-",
+
+    threshold:
+      threshold?.poin != null
+        ? `${threshold.poin} poin`
+        : threshold?.nama || threshold?.name || "-",
+
+    tanggalMulai: formatDate(item?.tanggal_mulai),
+
+    tanggalSelesai: formatDate(item?.tanggal_selesai),
+
+    catatan: item?.catatan || null,
+
+    logs: logs.map((log) => {
+      const logStaff = log?.staff;
+      const logStaffUser = logStaff?.user;
+
+      return {
+        id: log?.id,
+
+        status: log?.status || "-",
+
+        staff:
+          logStaffUser?.name ||
+          logStaffUser?.nama ||
+          logStaff?.name ||
+          logStaff?.nama ||
+          "-",
+
+        createdAt: formatDateTime(log?.created_at),
+
+        catatan: log?.catatan || null,
+      };
+    }),
+  };
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -512,45 +430,79 @@ onMounted(() => {
 |--------------------------------------------------------------------------
 */
 
-const getInitial = name => {
-  if (!name) return '?'
+const getInitial = (name) => {
+  if (!name) return "?";
 
   return name
-    .split(' ')
-    .map(word => word.charAt(0))
+    .split(" ")
+    .map((word) => word.charAt(0))
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
+    .join("")
+    .toUpperCase();
+};
 
-const getStageLabel = stage => {
+const getStageLabel = (stage) => {
   const labels = {
-    wali_kelas: 'Wali Kelas',
-    bk: 'BK',
-    kesiswaan: 'Kesiswaan',
-    kepala_sekolah: 'Kepala Sekolah'
+    wali_kelas: "Wali Kelas",
+    bk: "BK",
+    kesiswaan: "Kesiswaan",
+    kepala_sekolah: "Kepala Sekolah",
+  };
+
+  return labels[stage] || stage;
+};
+
+const getStageClass = (stage) => {
+  return `stage-${stage}`;
+};
+
+const getStatusLabel = (status) => {
+  const labels = {
+    menunggu: "Menunggu",
+    diproses: "Diproses",
+    selesai: "Selesai",
+  };
+
+  return labels[status] || status;
+};
+
+const getStatusClass = (status) => {
+  return `status-${status}`;
+};
+
+const formatDate = (value) => {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
   }
 
-  return labels[stage] || stage
-}
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
-const getStageClass = stage => {
-  return `stage-${stage}`
-}
+const formatDateTime = (value) => {
+  if (!value) return "-";
 
-const getStatusLabel = status => {
-  const labels = {
-    menunggu: 'Menunggu',
-    diproses: 'Diproses',
-    selesai: 'Selesai'
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
   }
 
-  return labels[status] || status
-}
-
-const getStatusClass = status => {
-  return `status-${status}`
-}
+  return date.toLocaleString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -559,20 +511,20 @@ const getStatusClass = status => {
 */
 
 const goBack = () => {
-  router.push('/staff/penanganan')
-}
+  router.push("/staf/penanganan");
+};
 
 const goToEdit = () => {
-  router.push(`/staff/penanganan/${route.params.id}/edit`)
-}
+  router.push(`/staf/penanganan/${route.params.id}/edit`);
+};
+
+onMounted(fetchIntervention);
 </script>
 
 <style scoped>
 .page-container {
   width: 100%;
 }
-
-/* Back */
 
 .back-button {
   display: inline-flex;
@@ -590,8 +542,6 @@ const goToEdit = () => {
 .back-button:hover {
   color: #2563eb;
 }
-
-/* Header */
 
 .page-header {
   display: flex;
@@ -648,8 +598,6 @@ const goToEdit = () => {
   background: #f8fafc;
 }
 
-/* State */
-
 .state-card {
   min-height: 300px;
   display: flex;
@@ -686,8 +634,6 @@ const goToEdit = () => {
     transform: rotate(360deg);
   }
 }
-
-/* Student */
 
 .student-card {
   display: flex;
@@ -752,8 +698,6 @@ const goToEdit = () => {
   font-size: 12px;
 }
 
-/* Grid */
-
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -793,8 +737,6 @@ const goToEdit = () => {
   color: #94a3b8;
   font-size: 11px;
 }
-
-/* Detail */
 
 .detail-list {
   padding: 4px 20px;
@@ -845,8 +787,6 @@ const goToEdit = () => {
   font-size: 11px;
 }
 
-/* Status */
-
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -891,8 +831,6 @@ const goToEdit = () => {
   background: #22c55e;
 }
 
-/* Stage */
-
 .stage-badge {
   display: inline-flex;
   align-items: center;
@@ -922,8 +860,6 @@ const goToEdit = () => {
   background: #fdf2f8;
   color: #db2777;
 }
-
-/* Violation */
 
 .violation-card {
   display: flex;
@@ -991,8 +927,6 @@ const goToEdit = () => {
   font-size: 12px;
   line-height: 1.6;
 }
-
-/* Logs */
 
 .logs-card {
   margin-bottom: 20px;
@@ -1116,8 +1050,6 @@ const goToEdit = () => {
 .empty-logs span {
   font-size: 11px;
 }
-
-/* Responsive */
 
 @media (max-width: 900px) {
   .detail-grid {

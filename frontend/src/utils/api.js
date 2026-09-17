@@ -1,4 +1,5 @@
 import axios from "axios";
+import { logout } from "./auth";
 
 const api = axios.create({
   baseURL: "http://127.0.0.1:8000/api",
@@ -7,6 +8,8 @@ const api = axios.create({
     Accept: "application/json",
   },
 });
+
+// token
 
 api.interceptors.request.use(
   (config) => {
@@ -18,7 +21,22 @@ api.interceptors.request.use(
 
     return config;
   },
+  (error) => Promise.reject(error),
+);
+
+// session
+
+api.interceptors.response.use(
+  (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      logout();
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
     return Promise.reject(error);
   },
 );

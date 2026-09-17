@@ -1,421 +1,371 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
 
-import Login from '../views/Auth/Login.vue'
-import LandingPage from '../views/Public/LandingPage.vue'
-import ReportIndex from '../views/Reports/Index.vue'
+import Login from "../views/Auth/Login.vue";
+import LandingPage from "../views/Public/LandingPage.vue";
+import ReportIndex from "../views/Reports/Index.vue";
 
-import StaffDashboard from '../views/Staff/Dashboard.vue'
-import StaffProfile from '../views/Staff/Profile.vue'
-import StudentIndex from '../views/Staff/Students/Index.vue'
-import StudentCreate from '../views/Staff/Students/Create.vue'
-import StudentShow from '../views/Staff/Students/Show.vue'
-import StudentEdit from '../views/Staff/Students/Edit.vue'
-import ViolationIndex from '../views/Staff/Violations/Index.vue'
-import ViolationCreate from '../views/Staff/Violations/Create.vue'
-import ViolationShow from '../views/Staff/Violations/Show.vue'
-import ViolationEdit from '../views/Staff/Violations/Edit.vue'
-import AchievementIndex from '../views/Staff/Achievements/Index.vue'
-import AchievementCreate from '../views/Staff/Achievements/Create.vue'
-import AchievementShow from '../views/Staff/Achievements/Show.vue'
-import AchievementEdit from '../views/Staff/Achievements/Edit.vue'
-import AchievementCategoryIndex
-  from '../views/Staff/Achievements/Categories/Index.vue'
-import AchievementCategoryCreate
-  from '../views/Staff/Achievements/Categories/Create.vue'
-import AchievementCategoryShow 
-  from '../views/Staff/Achievements/Categories/Show.vue'  
-import AchievementCategoryEdit 
-  from '../views/Staff/Achievements/Categories/Edit.vue' 
-import InterventionIndex from '../views/Staff/Intervention/Index.vue'
-import InterventionShow from '../views/Staff/Intervention/Show.vue'
-import InterventionEdit from '../views/Staff/Intervention/Edit.vue' 
+// staf
+import StaffDashboard from "../views/Staff/Dashboard.vue";
+import StaffProfile from "../views/Staff/Profile.vue";
 
-import SiswaDashboard from '../views/Siswa/Dashboard.vue'
-// import SiswaProfile from '../views/Siswa/Profile.vue'
-// import SiswaViolations from '../views/Siswa/Violations.vue'
-// import SiswaAchievements from '../views/Siswa/Achievements.vue'
-// import SiswaInterventions from '../views/Siswa/Interventions.vue'
-// import SiswaNotifications from '../views/Siswa/Notifications.vue'
+import StudentIndex from "../views/Staff/Students/Index.vue";
+import StudentCreate from "../views/Staff/Students/Create.vue";
+import StudentShow from "../views/Staff/Students/Show.vue";
+import StudentEdit from "../views/Staff/Students/Edit.vue";
 
-import {
-  getUser,
-  isAuthenticated
-} from '../utils/auth'
+import ViolationIndex from "../views/Staff/Violations/Index.vue";
+import ViolationCreate from "../views/Staff/Violations/Create.vue";
+import ViolationShow from "../views/Staff/Violations/Show.vue";
+import ViolationEdit from "../views/Staff/Violations/Edit.vue";
+
+import ViolationCategoryIndex from "../views/Staff/Violations/Categories/Index.vue";
+import ViolationCategoryCreate from "../views/Staff/Violations/Categories/Create.vue";
+import ViolationCategoryShow from "../views/Staff/Violations/Categories/Show.vue";
+import ViolationCategoryEdit from "../views/Staff/Violations/Categories/Edit.vue";
+
+import AchievementIndex from "../views/Staff/Achievements/Index.vue";
+import AchievementCreate from "../views/Staff/Achievements/Create.vue";
+import AchievementShow from "../views/Staff/Achievements/Show.vue";
+import AchievementEdit from "../views/Staff/Achievements/Edit.vue";
+
+import AchievementCategoryIndex from "../views/Staff/Achievements/Categories/Index.vue";
+import AchievementCategoryCreate from "../views/Staff/Achievements/Categories/Create.vue";
+import AchievementCategoryShow from "../views/Staff/Achievements/Categories/Show.vue";
+import AchievementCategoryEdit from "../views/Staff/Achievements/Categories/Edit.vue";
+
+import InterventionIndex from "../views/Staff/Intervention/Index.vue";
+import InterventionShow from "../views/Staff/Intervention/Show.vue";
+import InterventionEdit from "../views/Staff/Intervention/Edit.vue";
+
+// siswa
+import SiswaDashboard from "../views/Siswa/Dashboard.vue";
+
+import { getUser, isAuthenticated } from "../utils/auth";
+
 const routes = [
-
-  // ========================================
-  // PUBLIC
-  // ========================================
-
+  // public
   {
-    path: '/',
-    name: 'landing',
-    component: LandingPage
+    path: "/",
+    name: "landing",
+    component: LandingPage,
   },
   {
-    path: '/',
-    redirect: '/login'
+    path: "/login",
+    name: "login",
+    component: Login,
   },
 
+  // staf
   {
-    path: '/login',
-    name: 'login',
-    component: Login
-  },
-
-
-  // ========================================
-  // STAFF
-  // ========================================
-
-  {
-    path: '/staff',
-    name: 'staff.dashboard',
+    path: "/staf",
+    name: "staf.dashboard",
     component: StaffDashboard,
-
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
-
   {
-    path: '/staff/profile',
-    name: 'staff.profile',
+    path: "/staf/profil",
+    name: "staf.profil",
     component: StaffProfile,
-
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
 
+  // siswa
   {
-    path: '/staff/siswa',
-    name: 'staff.students',
+    path: "/staf/siswa",
+    name: "staf.siswa",
     component: StudentIndex,
-
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/siswa/create',
-    name: 'staff-siswa-create',
+    path: "/staf/siswa/create",
+    name: "staf.siswa.create",
     component: StudentCreate,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/siswa/:id',
-    name: 'staff.students.show',
+    path: "/staf/siswa/:id",
+    name: "staf.siswa.show",
     component: StudentShow,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
-},
-{
-    path: '/staff/siswa/:id/edit',
-    name: 'staff-siswa-edit',
+      role: "staff",
+    },
+  },
+  {
+    path: "/staf/siswa/:id/edit",
+    name: "staf.siswa.edit",
     component: StudentEdit,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
 
+  // pelanggaran
   {
-    path: '/staff/pelanggaran',
-    name: 'staff.pelanggaran',
+    path: "/staf/pelanggaran",
+    name: "staf.pelanggaran",
     component: ViolationIndex,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
-
   {
-    path: '/staff/pelanggaran/create',
-    name: 'staff.pelanggaran.create',
+    path: "/staf/pelanggaran/create",
+    name: "staf.pelanggaran.create",
     component: ViolationCreate,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
-
   {
-    path: '/staff/pelanggaran/:id',
-    name: 'staff.pelanggaran.show',
+    path: "/staf/pelanggaran/:id",
+    name: "staf.pelanggaran.show",
     component: ViolationShow,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
-
   {
-    path: '/staff/pelanggaran/:id/edit',
-    name: 'staff.pelanggaran.edit',
+    path: "/staf/pelanggaran/:id/edit",
+    name: "staf.pelanggaran.edit",
     component: ViolationEdit,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
+
+    // kategori pelanggaran
   {
-    path: '/staff/prestasi/kategori',
-    name: 'staff-achievement-categories',
-    component: AchievementCategoryIndex,
+    path: "/staf/pelanggaran/kategori",
+    name: "staf.pelanggaran.kategori",
+    component: ViolationCategoryIndex,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/prestasi/kategori/create',
-    name: 'staff-achievement-category-create',
-    component: AchievementCategoryCreate,
+    path: "/staf/pelanggaran/kategori/create",
+    name: "staf.pelanggaran.kategori.create",
+    component: ViolationCategoryCreate,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/prestasi/kategori/:id',
-    name: 'staff-achievement-category-show',
-    component: AchievementCategoryShow,
+    path: "/staf/pelanggaran/kategori/:id",
+    name: "staf.pelanggaran.kategori.show",
+    component: ViolationCategoryShow,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/prestasi/kategori/:id/edit',
-    name: 'staff-achievement-category-edit',
-    component: AchievementCategoryEdit,
+    path: "/staf/pelanggaran/kategori/:id/edit",
+    name: "staf.pelanggaran.kategori.edit",
+    component: ViolationCategoryEdit,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
+
+  // prestasi
   {
-    path: '/staff/prestasi',
-    name: 'staff-achievements',
+    path: "/staf/prestasi",
+    name: "staf.prestasi",
     component: AchievementIndex,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/prestasi/create',
-    name: 'staff-achievements-create',
+    path: "/staf/prestasi/create",
+    name: "staf.prestasi.create",
     component: AchievementCreate,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/prestasi/:id',
-    name: 'staff.prestasi.show',
+    path: "/staf/prestasi/:id",
+    name: "staf.prestasi.show",
     component: AchievementShow,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/prestasi/:id/edit',
-    name: 'staff-achievements-edit',
+    path: "/staf/prestasi/:id/edit",
+    name: "staf.prestasi.edit",
     component: AchievementEdit,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
+  },
+
+  // kategori prestasi
+  {
+    path: "/staf/prestasi/kategori",
+    name: "staf.prestasi.kategori",
+    component: AchievementCategoryIndex,
+    meta: {
+      requiresAuth: true,
+      role: "staff",
+    },
   },
   {
-    path: '/staff/penanganan',
-    name: 'staff-interventions',
+    path: "/staf/prestasi/kategori/create",
+    name: "staf.prestasi.kategori.create",
+    component: AchievementCategoryCreate,
+    meta: {
+      requiresAuth: true,
+      role: "staff",
+    },
+  },
+  {
+    path: "/staf/prestasi/kategori/:id",
+    name: "staf.prestasi.kategori.show",
+    component: AchievementCategoryShow,
+    meta: {
+      requiresAuth: true,
+      role: "staff",
+    },
+  },
+  {
+    path: "/staf/prestasi/kategori/:id/edit",
+    name: "staf.prestasi.kategori.edit",
+    component: AchievementCategoryEdit,
+    meta: {
+      requiresAuth: true,
+      role: "staff",
+    },
+  },
+
+  // penanganan
+  {
+    path: "/staf/penanganan",
+    name: "staf.penanganan",
     component: InterventionIndex,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/penanganan/:id',
-    name: 'staff-intervention-show',
+    path: "/staf/penanganan/:id",
+    name: "staf.penanganan.show",
     component: InterventionShow,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
   {
-    path: '/staff/penanganan/:id/edit',
-    name: 'staff-intervention-edit',
+    path: "/staf/penanganan/:id/edit",
+    name: "staf.penanganan.edit",
     component: InterventionEdit,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
+
+  // laporan
   {
-    path: '/staff/laporan',
-    name: 'staff-reports',
+    path: "/staf/laporan",
+    name: "staf.laporan",
     component: ReportIndex,
     meta: {
       requiresAuth: true,
-      role: 'staf'
-    }
+      role: "staff",
+    },
   },
+
+  // siswa
   {
-    path: '/siswa/laporan',
-    name: 'student-reports',
-    component: ReportIndex,
-    meta: {
-      requiresAuth: true,
-      role: 'siswa'
-    }
-  },
-  
-
-  
-
-  // ========================================
-  // SISWA
-  // ========================================
-
-  {
-    path: '/siswa',
-    name: 'siswa.dashboard',
+    path: "/siswa",
+    name: "siswa.dashboard",
     component: SiswaDashboard,
-
     meta: {
       requiresAuth: true,
-      role: 'siswa'
-    }
+      role: "student",
+    },
   },
+  {
+    path: "/siswa/laporan",
+    name: "siswa.laporan",
+    component: ReportIndex,
+    meta: {
+      requiresAuth: true,
+      role: "student",
+    },
+  },
+];
 
-  // {
-  //   path: '/siswa/profile',
-  //   name: 'siswa.profile',
-  //   component: SiswaProfile,
-
-  //   meta: {
-  //     requiresAuth: true,
-  //     role: 'siswa'
-  //   }
-  // },
-
-  // {
-  //   path: '/siswa/pelanggaran',
-  //   name: 'siswa.pelanggaran',
-  //   component: SiswaViolations,
-
-  //   meta: {
-  //     requiresAuth: true,
-  //     role: 'siswa'
-  //   }
-  // },
-
-  // {
-  //   path: '/siswa/prestasi',
-  //   name: 'siswa.prestasi',
-  //   component: SiswaAchievements,
-
-  //   meta: {
-  //     requiresAuth: true,
-  //     role: 'siswa'
-  //   }
-  // },
-
-  // {
-  //   path: '/siswa/intervensi',
-  //   name: 'siswa.intervensi',
-  //   component: SiswaInterventions,
-
-  //   meta: {
-  //     requiresAuth: true,
-  //     role: 'siswa'
-  //   }
-  // },
-
-  // {
-  //   path: '/siswa/notifikasi',
-  //   name: 'siswa.notifikasi',
-  //   component: SiswaNotifications,
-
-  //   meta: {
-  //     requiresAuth: true,
-  //     role: 'siswa'
-  //   }
-  // }
-
-]
-
-
-// ========================================
-// ROUTER
-// ========================================
-
+// router
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
-
-// ========================================
-// NAVIGATION GUARD
-// ========================================
-
+// guard
 router.beforeEach((to) => {
-  const authenticated = isAuthenticated()
-  const user = getUser()
-
-  // ======================================
-  // HALAMAN MEMBUTUHKAN LOGIN
-  // ======================================
+  const authenticated = isAuthenticated();
+  const user = getUser();
 
   if (to.meta.requiresAuth) {
     if (!authenticated || !user) {
-      return '/login'
+      return "/login";
     }
 
-    // Role tidak sesuai
     if (to.meta.role && user.role !== to.meta.role) {
-      if (user.role === 'staf') {
-        return '/staff'
+      if (user.role === "staff") {
+        return "/staf";
       }
 
-      if (user.role === 'siswa') {
-        return '/siswa'
+      if (user.role === "student") {
+        return "/siswa";
       }
 
-      return '/login'
+      return "/login";
     }
   }
 
-  // ======================================
-  // SUDAH LOGIN TAPI BUKA LOGIN
-  // ======================================
-
-  if (to.path === '/login' && authenticated && user) {
-    if (user.role === 'staf') {
-      return '/staff'
+  if (to.path === "/login" && authenticated && user) {
+    if (user.role === "staff") {
+      return "/staf";
     }
 
-    if (user.role === 'siswa') {
-      return '/siswa'
+    if (user.role === "student") {
+      return "/siswa";
     }
   }
 
-  return true
-})
-export default router
+  return true;
+});
+
+export default router;

@@ -14,6 +14,12 @@
         </div>
       </div>
 
+      <!-- Error -->
+      <div v-if="errorMessage" class="alert-error">
+        <CircleAlert :size="18" />
+        <span>{{ errorMessage }}</span>
+      </div>
+
       <!-- Form -->
       <div class="form-card">
         <form @submit.prevent="handleSubmit">
@@ -24,8 +30,8 @@
               <div>
                 <h2>Informasi Kategori</h2>
                 <p>
-                  Isi informasi kategori prestasi yang akan digunakan
-                  saat mencatat prestasi siswa.
+                  Isi informasi kategori prestasi yang akan digunakan saat
+                  mencatat prestasi siswa.
                 </p>
               </div>
             </div>
@@ -33,9 +39,7 @@
             <div class="form-grid">
               <!-- Nama Prestasi -->
               <div class="form-group full-width">
-                <label for="namaPrestasi">
-                  Nama Prestasi <span>*</span>
-                </label>
+                <label for="namaPrestasi"> Nama Prestasi <span>*</span> </label>
 
                 <input
                   id="namaPrestasi"
@@ -52,9 +56,7 @@
 
               <!-- Poin -->
               <div class="form-group">
-                <label for="poin">
-                  Poin <span>*</span>
-                </label>
+                <label for="poin"> Poin <span>*</span> </label>
 
                 <div class="point-input">
                   <Plus :size="17" />
@@ -68,9 +70,7 @@
                   />
                 </div>
 
-                <small class="helper-text">
-                  Poin minimal adalah 1.
-                </small>
+                <small class="helper-text"> Poin minimal adalah 1. </small>
 
                 <small v-if="errors.poin" class="error-text">
                   {{ errors.poin }}
@@ -79,9 +79,7 @@
 
               <!-- Tingkat -->
               <div class="form-group">
-                <label for="tingkat">
-                  Tingkat <span>*</span>
-                </label>
+                <label for="tingkat"> Tingkat <span>*</span> </label>
 
                 <select id="tingkat" v-model="form.tingkat">
                   <option value="">Pilih tingkat</option>
@@ -90,9 +88,7 @@
                   <option value="kabupaten">Kabupaten</option>
                   <option value="provinsi">Provinsi</option>
                   <option value="nasional">Nasional</option>
-                  <option value="internasional">
-                    Internasional
-                  </option>
+                  <option value="internasional">Internasional</option>
                 </select>
 
                 <small v-if="errors.tingkat" class="error-text">
@@ -142,29 +138,27 @@
 
               <div class="preview-content">
                 <strong>
-                  {{ form.namaPrestasi || 'Nama Prestasi' }}
+                  {{ form.namaPrestasi || "Nama Prestasi" }}
                 </strong>
 
                 <div class="preview-meta">
                   <span
                     class="level-badge"
-                    :class="form.tingkat
-                      ? `level-${form.tingkat}`
-                      : 'level-default'"
+                    :class="
+                      form.tingkat ? `level-${form.tingkat}` : 'level-default'
+                    "
                   >
                     {{ formatTingkat(form.tingkat) }}
                   </span>
 
-                  <span class="point-badge">
-                    +{{ form.poin || 0 }} Poin
-                  </span>
+                  <span class="point-badge"> +{{ form.poin || 0 }} Poin </span>
 
                   <span
                     class="status-badge"
                     :class="form.status ? 'active' : 'inactive'"
                   >
                     <span class="status-dot"></span>
-                    {{ form.status ? 'Aktif' : 'Nonaktif' }}
+                    {{ form.status ? "Aktif" : "Nonaktif" }}
                   </span>
                 </div>
               </div>
@@ -179,8 +173,8 @@
               <strong>Informasi</strong>
 
               <p>
-                Kategori prestasi yang berstatus aktif dapat digunakan
-                saat mencatat prestasi siswa.
+                Kategori prestasi yang berstatus aktif dapat digunakan saat
+                mencatat prestasi siswa.
               </p>
             </div>
           </div>
@@ -190,14 +184,15 @@
             <button
               type="button"
               class="btn btn-secondary"
+              :disabled="saving"
               @click="goBack"
             >
               Batal
             </button>
 
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" :disabled="saving">
               <Save :size="18" />
-              Simpan Kategori
+              {{ saving ? "Menyimpan..." : "Simpan Kategori" }}
             </button>
           </div>
         </form>
@@ -207,10 +202,11 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 
-import AppLayout from '../../../../layouts/AppLayout.vue'
+import AppLayout from "../../../../layouts/AppLayout.vue";
+import api from "../../../../utils/api";
 
 import {
   ArrowLeft,
@@ -218,10 +214,10 @@ import {
   Eye,
   Plus,
   Save,
-  Trophy
-} from 'lucide-vue-next'
+  Trophy,
+} from "lucide-vue-next";
 
-const router = useRouter()
+const router = useRouter();
 
 /*
 |--------------------------------------------------------------------------
@@ -230,24 +226,27 @@ const router = useRouter()
 */
 
 const form = reactive({
-  namaPrestasi: '',
-  poin: '',
-  tingkat: '',
-  deskripsi: '',
-  status: true
-})
+  namaPrestasi: "",
+  poin: "",
+  tingkat: "",
+  deskripsi: "",
+  status: true,
+});
 
 /*
 |--------------------------------------------------------------------------
-| Errors
+| State
 |--------------------------------------------------------------------------
 */
 
+const saving = ref(false);
+const errorMessage = ref("");
+
 const errors = reactive({
-  namaPrestasi: '',
-  poin: '',
-  tingkat: ''
-})
+  namaPrestasi: "",
+  poin: "",
+  tingkat: "",
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -257,16 +256,23 @@ const errors = reactive({
 
 const formatTingkat = (tingkat) => {
   const names = {
-    sekolah: 'Sekolah',
-    kecamatan: 'Kecamatan',
-    kabupaten: 'Kabupaten',
-    provinsi: 'Provinsi',
-    nasional: 'Nasional',
-    internasional: 'Internasional'
-  }
+    sekolah: "Sekolah",
+    kecamatan: "Kecamatan",
+    kabupaten: "Kabupaten",
+    provinsi: "Provinsi",
+    nasional: "Nasional",
+    internasional: "Internasional",
+  };
 
-  return names[tingkat] || 'Pilih Tingkat'
-}
+  return names[tingkat] || "Pilih Tingkat";
+};
+
+const clearErrors = () => {
+  errors.namaPrestasi = "";
+  errors.poin = "";
+  errors.tingkat = "";
+  errorMessage.value = "";
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -275,55 +281,81 @@ const formatTingkat = (tingkat) => {
 */
 
 const validateForm = () => {
-  errors.namaPrestasi = ''
-  errors.poin = ''
-  errors.tingkat = ''
+  clearErrors();
 
-  let valid = true
+  let valid = true;
 
   if (!form.namaPrestasi.trim()) {
-    errors.namaPrestasi = 'Nama prestasi wajib diisi.'
-    valid = false
+    errors.namaPrestasi = "Nama prestasi wajib diisi.";
+    valid = false;
   }
 
   if (!form.poin || Number(form.poin) < 1) {
-    errors.poin = 'Poin wajib diisi minimal 1.'
-    valid = false
+    errors.poin = "Poin wajib diisi minimal 1.";
+    valid = false;
   }
 
   if (!form.tingkat) {
-    errors.tingkat = 'Tingkat prestasi wajib dipilih.'
-    valid = false
+    errors.tingkat = "Tingkat prestasi wajib dipilih.";
+    valid = false;
   }
 
-  return valid
-}
+  return valid;
+};
 
 /*
 |--------------------------------------------------------------------------
-| Submit
+| API
 |--------------------------------------------------------------------------
 */
 
-const handleSubmit = () => {
-  if (!validateForm()) {
-    return
+const handleSubmit = async () => {
+  if (!validateForm()) return;
+
+  saving.value = true;
+
+  try {
+    const payload = {
+      nama_prestasi: form.namaPrestasi.trim(),
+      poin: Number(form.poin),
+      tingkat: form.tingkat,
+      deskripsi: form.deskripsi.trim() || null,
+      status: form.status,
+    };
+
+    const response = await api.post("/staff/achievement-categories", payload);
+
+    const createdCategory = response.data?.data ?? response.data;
+
+    alert("Kategori prestasi berhasil disimpan.");
+
+    if (createdCategory?.id) {
+      router.push(`/staf/prestasi/kategori/${createdCategory.id}`);
+    } else {
+      router.push("/staf/prestasi/kategori");
+    }
+  } catch (error) {
+    console.error("Gagal menyimpan kategori prestasi:", error);
+
+    if (error.response?.status === 422) {
+      const validationErrors = error.response.data?.errors || {};
+
+      errors.namaPrestasi = validationErrors.nama_prestasi?.[0] || "";
+
+      errors.poin = validationErrors.poin?.[0] || "";
+
+      errors.tingkat = validationErrors.tingkat?.[0] || "";
+
+      errorMessage.value =
+        error.response.data?.message || "Periksa kembali data yang dimasukkan.";
+    } else {
+      errorMessage.value =
+        error.response?.data?.message || "Gagal menyimpan kategori prestasi.";
+    }
+  } finally {
+    saving.value = false;
   }
-
-  const categoryData = {
-    namaPrestasi: form.namaPrestasi.trim(),
-    poin: Number(form.poin),
-    tingkat: form.tingkat,
-    deskripsi: form.deskripsi.trim(),
-    status: form.status
-  }
-
-  console.log('Data kategori prestasi:', categoryData)
-
-  alert('Kategori prestasi berhasil disimpan.')
-
-  router.push('/staff/prestasi/kategori')
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -332,8 +364,8 @@ const handleSubmit = () => {
 */
 
 const goBack = () => {
-  router.push('/staff/prestasi/kategori')
-}
+  router.push("/staf/prestasi/kategori");
+};
 </script>
 
 <style scoped>
@@ -506,6 +538,19 @@ const goBack = () => {
 .error-text {
   color: #dc2626;
   font-size: 12px;
+}
+
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 13px 15px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
 }
 
 /* Preview */
@@ -696,12 +741,17 @@ const goBack = () => {
   transition: 0.2s;
 }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-secondary {
   background: #f1f5f9;
   color: #475569;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: #e2e8f0;
 }
 
@@ -710,7 +760,7 @@ const goBack = () => {
   color: #ffffff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: #1d4ed8;
 }
 

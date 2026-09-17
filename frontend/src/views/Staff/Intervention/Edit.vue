@@ -11,9 +11,7 @@
       <div class="page-header">
         <div>
           <h1>Edit Penanganan</h1>
-          <p>
-            Perbarui status dan catatan proses penanganan siswa.
-          </p>
+          <p>Perbarui status dan catatan proses penanganan siswa.</p>
         </div>
       </div>
 
@@ -24,10 +22,25 @@
         <span>Silakan tunggu sebentar.</span>
       </div>
 
+      <!-- Error -->
+      <div v-else-if="error" class="state-card">
+        <ClipboardList :size="40" />
+
+        <strong>Gagal memuat data</strong>
+
+        <span>{{ error }}</span>
+
+        <button class="secondary-button" @click="fetchIntervention">
+          Coba Lagi
+        </button>
+      </div>
+
       <!-- Not Found -->
       <div v-else-if="!intervention" class="state-card">
         <ClipboardList :size="40" />
+
         <strong>Data penanganan tidak ditemukan</strong>
+
         <span>Data yang Anda cari tidak tersedia.</span>
 
         <button class="secondary-button" @click="goBack">
@@ -46,10 +59,11 @@
 
             <div class="student-info">
               <strong>{{ intervention.siswa.nama }}</strong>
+
               <span>
-                NIS {{ intervention.siswa.nis }}
-                · {{ intervention.siswa.tingkat }}
-                · Kelas {{ intervention.siswa.kelas }}
+                NIS {{ intervention.siswa.nis }} ·
+                {{ intervention.siswa.tingkat }} · Kelas
+                {{ intervention.siswa.kelas }}
               </span>
             </div>
           </div>
@@ -59,9 +73,8 @@
             <div class="section-header">
               <div>
                 <h3>Informasi Penanganan</h3>
-                <p>
-                  Informasi ini tidak dapat diubah dari halaman ini.
-                </p>
+
+                <p>Informasi ini tidak dapat diubah dari halaman ini.</p>
               </div>
 
               <ClipboardList :size="20" />
@@ -75,6 +88,7 @@
 
               <div class="info-item">
                 <span>Poin Saat Penanganan</span>
+
                 <strong class="point-value">
                   {{ intervention.poin }} poin
                 </strong>
@@ -95,7 +109,7 @@
 
               <div class="info-item">
                 <span>Tanggal Mulai</span>
-                <strong>{{ intervention.tanggalMulai }}</strong>
+                <strong>{{ intervention.tanggalMulai || "-" }}</strong>
               </div>
 
               <div class="info-item">
@@ -115,9 +129,8 @@
             <div class="section-header">
               <div>
                 <h3>Pembaruan Penanganan</h3>
-                <p>
-                  Ubah status dan tambahkan catatan penanganan.
-                </p>
+
+                <p>Ubah status dan tambahkan catatan penanganan.</p>
               </div>
 
               <FilePenLine :size="20" />
@@ -125,9 +138,7 @@
 
             <!-- Status -->
             <div class="form-group">
-              <label for="status">
-                Status <span>*</span>
-              </label>
+              <label for="status"> Status <span>*</span> </label>
 
               <select
                 id="status"
@@ -147,14 +158,13 @@
 
             <!-- Catatan -->
             <div class="form-group">
-              <label for="catatan">
-                Catatan
-              </label>
+              <label for="catatan"> Catatan </label>
 
               <textarea
                 id="catatan"
                 v-model="form.catatan"
                 rows="6"
+                maxlength="5000"
                 placeholder="Tuliskan catatan mengenai proses penanganan..."
                 :class="{ error: errors.catatan }"
               ></textarea>
@@ -177,37 +187,26 @@
 
             <div>
               <strong>Informasi</strong>
+
               <p>
-                Setiap perubahan status akan dicatat sebagai riwayat
-                penanganan dan dapat dilihat pada halaman detail.
+                Setiap perubahan status akan dicatat sebagai riwayat penanganan
+                dan dapat dilihat pada halaman detail.
               </p>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="form-actions">
-            <button
-              type="button"
-              class="secondary-button"
-              @click="goBack"
-            >
+            <button type="button" class="secondary-button" @click="goBack">
               Batal
             </button>
 
-            <button
-              type="submit"
-              class="primary-button"
-              :disabled="saving"
-            >
-              <LoaderCircle
-                v-if="saving"
-                :size="17"
-                class="button-loading"
-              />
+            <button type="submit" class="primary-button" :disabled="saving">
+              <LoaderCircle v-if="saving" :size="17" class="button-loading" />
 
               <Save v-else :size="17" />
 
-              {{ saving ? 'Menyimpan...' : 'Simpan Perubahan' }}
+              {{ saving ? "Menyimpan..." : "Simpan Perubahan" }}
             </button>
           </div>
         </form>
@@ -217,8 +216,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import {
   ArrowLeft,
@@ -226,170 +225,128 @@ import {
   FilePenLine,
   Info,
   Save,
-  LoaderCircle
-} from 'lucide-vue-next'
+  LoaderCircle,
+} from "lucide-vue-next";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const loading = ref(true)
-const saving = ref(false)
+const loading = ref(true);
+const saving = ref(false);
+const error = ref("");
 
-const intervention = ref(null)
+const intervention = ref(null);
 
 const form = ref({
-  status: '',
-  catatan: ''
-})
+  status: "",
+  catatan: "",
+});
 
 const errors = ref({
-  status: '',
-  catatan: ''
-})
+  status: "",
+  catatan: "",
+});
 
 /*
 |--------------------------------------------------------------------------
-| Dummy Data
+| Fetch
 |--------------------------------------------------------------------------
-| Sementara menggunakan data dummy.
-| Nanti akan diganti dengan GET API.
 */
 
-const dummyData = [
-  {
-    id: 1,
+const fetchIntervention = async () => {
+  loading.value = true;
+  error.value = "";
+  intervention.value = null;
 
-    siswa: {
-      nama: 'Ahmad Fauzan',
-      nis: '2024001',
-      tingkat: 'Kelas 10',
-      jurusan: 'RPL',
-      kelas: '1'
-    },
+  try {
+    const response = await api.get(`/staff/interventions/${route.params.id}`);
 
-    pelanggaran: 'Terlambat masuk sekolah',
-    poin: 10,
+    const data = response?.data?.data;
 
-    tahap: 'wali_kelas',
-    status: 'diproses',
+    if (!data) {
+      intervention.value = null;
+      return;
+    }
 
-    petugas: 'Budi Santoso',
-    jabatan: 'Wali Kelas',
+    intervention.value = normalizeIntervention(data);
 
-    threshold: '10 poin',
+    form.value.status = data?.status || "";
+    form.value.catatan = data?.catatan || "";
+  } catch (err) {
+    console.error("Gagal mengambil data penanganan:", err);
 
-    tanggalMulai: '10 Sep 2026',
-
-    catatan:
-      'Siswa diberikan pembinaan terkait kedisiplinan waktu masuk sekolah.'
-  },
-
-  {
-    id: 2,
-
-    siswa: {
-      nama: 'Rizky Ramadhan',
-      nis: '2024002',
-      tingkat: 'Kelas 11',
-      jurusan: 'TKR',
-      kelas: '2'
-    },
-
-    pelanggaran: 'Tidak mengikuti kegiatan sekolah',
-    poin: 20,
-
-    tahap: 'bk',
-    status: 'menunggu',
-
-    petugas: 'Siti Aminah',
-    jabatan: 'BK',
-
-    threshold: '20 poin',
-
-    tanggalMulai: '9 Sep 2026',
-
-    catatan: ''
-  },
-
-  {
-    id: 3,
-
-    siswa: {
-      nama: 'Dimas Saputra',
-      nis: '2024003',
-      tingkat: 'Kelas 12',
-      jurusan: 'TSM',
-      kelas: '1'
-    },
-
-    pelanggaran: 'Membawa barang terlarang',
-    poin: 30,
-
-    tahap: 'kesiswaan',
-    status: 'diproses',
-
-    petugas: 'Andi Pratama',
-    jabatan: 'Kesiswaan',
-
-    threshold: '30 poin',
-
-    tanggalMulai: '8 Sep 2026',
-
-    catatan:
-      'Siswa sedang dalam proses pembinaan oleh bagian kesiswaan.'
-  },
-
-  {
-    id: 4,
-
-    siswa: {
-      nama: 'Fajar Maulana',
-      nis: '2024004',
-      tingkat: 'Kelas 12',
-      jurusan: 'RPL',
-      kelas: '2'
-    },
-
-    pelanggaran: 'Bolos sekolah',
-    poin: 40,
-
-    tahap: 'kepala_sekolah',
-    status: 'selesai',
-
-    petugas: 'Drs. Ahmad Hidayat',
-    jabatan: 'Kepala Sekolah',
-
-    threshold: '40 poin',
-
-    tanggalMulai: '5 Sep 2026',
-
-    catatan:
-      'Penanganan telah selesai setelah dilakukan pembinaan bersama siswa dan orang tua.'
+    if (err?.response?.status === 404) {
+      intervention.value = null;
+    } else {
+      error.value =
+        err?.response?.data?.message ||
+        "Terjadi kesalahan saat mengambil data penanganan.";
+    }
+  } finally {
+    loading.value = false;
   }
-]
+};
 
 /*
 |--------------------------------------------------------------------------
-| Load Data
+| Normalize
 |--------------------------------------------------------------------------
 */
 
-onMounted(() => {
-  const id = Number(route.params.id)
+const normalizeIntervention = (item) => {
+  const student = item?.student;
+  const user = student?.user;
 
-  const data = dummyData.find(item => item.id === id)
+  const staff = item?.staff;
+  const staffUser = staff?.user;
 
-  if (data) {
-    intervention.value = data
+  const threshold = item?.threshold;
 
-    form.value.status = data.status
-    form.value.catatan = data.catatan || ''
-  }
+  return {
+    id: item?.id,
 
-  loading.value = false
-})
+    siswa: {
+      nama: user?.name || user?.nama || student?.name || student?.nama || "-",
+
+      nis: student?.nis || "-",
+
+      tingkat: student?.tingkat ? `Kelas ${student.tingkat}` : "-",
+
+      jurusan: student?.jurusan || "-",
+
+      kelas: student?.nomor_kelas || student?.kelas || "-",
+    },
+
+    pelanggaran:
+      item?.pelanggaran ||
+      item?.violation?.category?.nama_pelanggaran ||
+      item?.studentViolation?.category?.nama_pelanggaran ||
+      item?.student_violation?.category?.nama_pelanggaran ||
+      "-",
+
+    poin:
+      item?.poin ??
+      item?.poin_tercatat ??
+      item?.studentViolation?.poin_tercatat ??
+      item?.student_violation?.poin_tercatat ??
+      0,
+
+    tahap: item?.tahap || "-",
+
+    petugas:
+      staffUser?.name || staffUser?.nama || staff?.name || staff?.nama || "-",
+
+    threshold:
+      threshold?.poin != null
+        ? `${threshold.poin} poin`
+        : threshold?.nama || threshold?.name || "-",
+
+    tanggalMulai: formatDate(item?.tanggal_mulai),
+  };
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -399,25 +356,47 @@ onMounted(() => {
 
 const validateForm = () => {
   errors.value = {
-    status: '',
-    catatan: ''
-  }
+    status: "",
+    catatan: "",
+  };
 
-  let valid = true
+  let valid = true;
 
   if (!form.value.status) {
-    errors.value.status = 'Status wajib dipilih.'
-    valid = false
+    errors.value.status = "Status wajib dipilih.";
+    valid = false;
   }
 
   if (form.value.catatan.length > 5000) {
-    errors.value.catatan =
-      'Catatan maksimal 5000 karakter.'
-    valid = false
+    errors.value.catatan = "Catatan maksimal 5000 karakter.";
+    valid = false;
   }
 
-  return valid
-}
+  return valid;
+};
+
+/*
+|--------------------------------------------------------------------------
+| API Error
+|--------------------------------------------------------------------------
+*/
+
+const handleApiErrors = (error) => {
+  const responseErrors = error?.response?.data?.errors;
+
+  if (responseErrors) {
+    errors.value.status = responseErrors.status?.[0] || "";
+
+    errors.value.catatan = responseErrors.catatan?.[0] || "";
+
+    return;
+  }
+
+  alert(
+    error?.response?.data?.message ||
+      "Terjadi kesalahan saat memperbarui penanganan.",
+  );
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -427,60 +406,30 @@ const validateForm = () => {
 
 const handleSubmit = async () => {
   if (!validateForm()) {
-    return
+    return;
   }
 
-  saving.value = true
+  saving.value = true;
 
   try {
-    /*
-     * Payload ini sengaja dibuat sama dengan validasi
-     * InterventionController@update Laravel:
-     *
-     * {
-     *   status: 'diproses',
-     *   catatan: '...'
-     * }
-     */
-
     const payload = {
       status: form.value.status,
-      catatan: form.value.catatan.trim() || null
-    }
+      catatan: form.value.catatan.trim() || null,
+    };
 
-    console.log('Update intervention:', {
-      id: intervention.value.id,
-      ...payload
-    })
+    await api.put(`/staff/interventions/${intervention.value.id}`, payload);
 
-    /*
-     * API belum dipasang.
-     * Nanti:
-     *
-     * await api.put(
-     *   `/staff/interventions/${intervention.value.id}`,
-     *   payload
-     * )
-     */
+    alert("Penanganan berhasil diperbarui.");
 
-    await new Promise(resolve => setTimeout(resolve, 500))
+    router.push(`/staf/penanganan/${intervention.value.id}`);
+  } catch (err) {
+    console.error("Gagal memperbarui penanganan:", err);
 
-    alert('Penanganan berhasil diperbarui.')
-
-    router.push(
-      `/staff/penanganan/${intervention.value.id}`
-    )
-  } catch (error) {
-    console.error(
-      'Gagal memperbarui penanganan:',
-      error
-    )
-
-    alert('Terjadi kesalahan saat memperbarui penanganan.')
+    handleApiErrors(err);
   } finally {
-    saving.value = false
+    saving.value = false;
   }
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -488,51 +437,65 @@ const handleSubmit = async () => {
 |--------------------------------------------------------------------------
 */
 
-const getInitial = name => {
-  if (!name) return '?'
+const getInitial = (name) => {
+  if (!name) return "?";
 
   return name
-    .split(' ')
-    .map(word => word.charAt(0))
+    .split(" ")
+    .map((word) => word.charAt(0))
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
+    .join("")
+    .toUpperCase();
+};
 
-const getStageLabel = stage => {
+const getStageLabel = (stage) => {
   const labels = {
-    wali_kelas: 'Wali Kelas',
-    bk: 'BK',
-    kesiswaan: 'Kesiswaan',
-    kepala_sekolah: 'Kepala Sekolah'
+    wali_kelas: "Wali Kelas",
+    bk: "BK",
+    kesiswaan: "Kesiswaan",
+    kepala_sekolah: "Kepala Sekolah",
+  };
+
+  return labels[stage] || stage;
+};
+
+const getStageClass = (stage) => {
+  return `stage-${stage}`;
+};
+
+const formatDate = (value) => {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
   }
 
-  return labels[stage] || stage
-}
-
-const getStageClass = stage => {
-  return `stage-${stage}`
-}
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 /*
 |--------------------------------------------------------------------------
-| Status
+| Navigation
 |--------------------------------------------------------------------------
 */
 
 const goBack = () => {
-  router.push(
-    `/staff/penanganan/${route.params.id}`
-  )
-}
+  router.push(`/staf/penanganan/${route.params.id}`);
+};
+
+onMounted(fetchIntervention);
 </script>
 
 <style scoped>
 .page-container {
   width: 100%;
 }
-
-/* Back */
 
 .back-button {
   display: inline-flex;
@@ -551,8 +514,6 @@ const goBack = () => {
   color: #2563eb;
 }
 
-/* Header */
-
 .page-header {
   margin-bottom: 24px;
 }
@@ -569,8 +530,6 @@ const goBack = () => {
   color: #64748b;
   font-size: 14px;
 }
-
-/* State */
 
 .state-card {
   min-height: 300px;
@@ -594,6 +553,26 @@ const goBack = () => {
   font-size: 12px;
 }
 
+.secondary-button {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 0 15px;
+  border: 1px solid #dce3ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: #f8fafc;
+}
+
 .loading-icon {
   color: #2563eb;
   animation: spin 1s linear infinite;
@@ -605,16 +584,12 @@ const goBack = () => {
   }
 }
 
-/* Form */
-
 .form-card {
   background: #ffffff;
   border: 1px solid #e5eaf1;
   border-radius: 12px;
   overflow: hidden;
 }
-
-/* Student */
 
 .student-summary {
   display: flex;
@@ -655,8 +630,6 @@ const goBack = () => {
   font-size: 11px;
 }
 
-/* Section */
-
 .section {
   padding: 22px 24px;
   border-bottom: 1px solid #eef2f6;
@@ -686,8 +659,6 @@ const goBack = () => {
   color: #94a3b8;
   font-size: 11px;
 }
-
-/* Info Grid */
 
 .info-grid {
   display: grid;
@@ -719,8 +690,6 @@ const goBack = () => {
   color: #2563eb !important;
 }
 
-/* Stage */
-
 .stage-badge {
   display: inline-flex;
   width: fit-content;
@@ -750,8 +719,6 @@ const goBack = () => {
   background: #fdf2f8;
   color: #db2777;
 }
-
-/* Form Group */
 
 .form-group {
   margin-bottom: 20px;
@@ -816,8 +783,6 @@ const goBack = () => {
   color: #94a3b8;
 }
 
-/* Textarea */
-
 .textarea-footer {
   display: flex;
   justify-content: space-between;
@@ -835,8 +800,6 @@ const goBack = () => {
   color: #dc2626;
   font-size: 11px;
 }
-
-/* Info */
 
 .info-box {
   display: flex;
@@ -867,8 +830,6 @@ const goBack = () => {
   font-size: 11px;
   line-height: 1.5;
 }
-
-/* Actions */
 
 .form-actions {
   display: flex;
@@ -923,8 +884,6 @@ const goBack = () => {
 .button-loading {
   animation: spin 1s linear infinite;
 }
-
-/* Responsive */
 
 @media (max-width: 900px) {
   .info-grid {

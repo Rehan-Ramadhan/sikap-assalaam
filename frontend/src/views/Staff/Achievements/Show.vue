@@ -21,156 +21,161 @@
       </button>
     </div>
 
-    <div v-if="achievement" class="detail-grid">
-      <!-- Informasi Siswa -->
-      <div class="detail-card student-card">
-        <div class="student-avatar">
-          {{ getInitial(achievement.namaSiswa) }}
+    <!-- Loading -->
+    <div v-if="loading" class="loading-card">
+      <div class="spinner"></div>
+      <p>Memuat data prestasi...</p>
+    </div>
+
+    <!-- Detail -->
+    <template v-else-if="achievement">
+      <div class="detail-grid">
+        <!-- Informasi Siswa -->
+        <div class="detail-card student-card">
+          <div class="student-avatar">
+            {{ getInitial(achievement.namaSiswa) }}
+          </div>
+
+          <h2>{{ achievement.namaSiswa }}</h2>
+          <span class="nis">{{ achievement.nis }}</span>
+
+          <div class="student-info">
+            <div>
+              <span>Tingkat</span>
+              <strong>Kelas {{ achievement.tingkatSiswa }}</strong>
+            </div>
+
+            <div>
+              <span>Jurusan</span>
+              <strong>{{ achievement.jurusan }}</strong>
+            </div>
+
+            <div>
+              <span>Kelas</span>
+              <strong>{{ achievement.nomorKelas }}</strong>
+            </div>
+          </div>
         </div>
 
-        <h2>{{ achievement.namaSiswa }}</h2>
-        <span class="nis">{{ achievement.nis }}</span>
+        <!-- Detail Prestasi -->
+        <div class="detail-card">
+          <div class="card-header">
+            <div>
+              <h2>Informasi Prestasi</h2>
+              <p>Detail pencapaian siswa.</p>
+            </div>
 
-        <div class="student-info">
-          <div>
-            <span>Tingkat</span>
-            <strong>Kelas {{ achievement.tingkatSiswa }}</strong>
+            <span class="status-badge" :class="achievement.status">
+              {{ getStatusLabel(achievement.status) }}
+            </span>
           </div>
 
-          <div>
-            <span>Jurusan</span>
-            <strong>{{ achievement.jurusan }}</strong>
+          <div class="achievement-title">
+            <div class="achievement-icon">
+              <Trophy :size="28" />
+            </div>
+
+            <div>
+              <span>Nama Prestasi</span>
+              <h2>{{ achievement.namaPrestasi }}</h2>
+            </div>
           </div>
 
-          <div>
-            <span>Kelas</span>
-            <strong>{{ achievement.nomorKelas }}</strong>
+          <div class="info-list">
+            <div class="info-item">
+              <span>Tingkat Prestasi</span>
+
+              <strong>
+                <span class="level-badge" :class="achievement.tingkat">
+                  {{ getLevelLabel(achievement.tingkat) }}
+                </span>
+              </strong>
+            </div>
+
+            <div class="info-item">
+              <span>Poin Tercatat</span>
+
+              <strong>
+                <span class="point-badge">
+                  +{{ achievement.poinTercatat }} Poin
+                </span>
+              </strong>
+            </div>
+
+            <div class="info-item">
+              <span>Tanggal Prestasi</span>
+
+              <strong>
+                {{ formatDate(achievement.tanggalPrestasi) }}
+              </strong>
+            </div>
+
+            <div class="info-item">
+              <span>Dicatat Oleh</span>
+
+              <strong>{{ achievement.dicatatOleh }}</strong>
+            </div>
+          </div>
+
+          <div class="description-section">
+            <span>Keterangan</span>
+
+            <p>
+              {{ achievement.keterangan || "Tidak ada keterangan." }}
+            </p>
           </div>
         </div>
       </div>
 
-      <!-- Detail Prestasi -->
-      <div class="detail-card">
-        <div class="card-header">
-          <div>
-            <h2>Informasi Prestasi</h2>
-            <p>Detail pencapaian siswa.</p>
-          </div>
-
-          <span
-            class="status-badge"
-            :class="achievement.status"
-          >
-            {{ getStatusLabel(achievement.status) }}
-          </span>
-        </div>
-
-        <div class="achievement-title">
-          <div class="achievement-icon">
-            <Trophy :size="28" />
+      <!-- Informasi Pembatalan -->
+      <div
+        v-if="achievement.status === 'dibatalkan'"
+        class="detail-card cancellation-card"
+      >
+        <div class="cancellation-header">
+          <div class="warning-icon">
+            <CircleAlert :size="22" />
           </div>
 
           <div>
-            <span>Nama Prestasi</span>
-            <h2>{{ achievement.namaPrestasi }}</h2>
+            <h2>Informasi Pembatalan</h2>
+            <p>Prestasi ini telah dibatalkan.</p>
           </div>
         </div>
 
         <div class="info-list">
           <div class="info-item">
-            <span>Tingkat Prestasi</span>
-
-            <strong>
-              <span
-                class="level-badge"
-                :class="achievement.tingkat"
-              >
-                {{ getLevelLabel(achievement.tingkat) }}
-              </span>
-            </strong>
+            <span>Dibatalkan Oleh</span>
+            <strong>{{ achievement.cancelledBy }}</strong>
           </div>
 
           <div class="info-item">
-            <span>Poin Tercatat</span>
-
+            <span>Waktu Pembatalan</span>
             <strong>
-              <span class="point-badge">
-                +{{ achievement.poinTercatat }} Poin
-              </span>
+              {{ formatDateTime(achievement.cancelledAt) }}
             </strong>
-          </div>
-
-          <div class="info-item">
-            <span>Tanggal Prestasi</span>
-            <strong>
-              {{ formatDate(achievement.tanggalPrestasi) }}
-            </strong>
-          </div>
-
-          <div class="info-item">
-            <span>Dicatat Oleh</span>
-            <strong>{{ achievement.dicatatOleh }}</strong>
           </div>
         </div>
 
         <div class="description-section">
-          <span>Keterangan</span>
+          <span>Alasan Pembatalan</span>
 
           <p>
-            {{ achievement.keterangan || 'Tidak ada keterangan.' }}
+            {{ achievement.cancelReason || "Tidak ada alasan." }}
           </p>
         </div>
       </div>
-    </div>
-
-    <!-- Informasi Pembatalan -->
-    <div
-      v-if="achievement?.status === 'dibatalkan'"
-      class="detail-card cancellation-card"
-    >
-      <div class="cancellation-header">
-        <div class="warning-icon">
-          <CircleAlert :size="22" />
-        </div>
-
-        <div>
-          <h2>Informasi Pembatalan</h2>
-          <p>Prestasi ini telah dibatalkan.</p>
-        </div>
-      </div>
-
-      <div class="info-list">
-        <div class="info-item">
-          <span>Dibatalkan Oleh</span>
-          <strong>{{ achievement.cancelledBy }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Waktu Pembatalan</span>
-          <strong>{{ formatDateTime(achievement.cancelledAt) }}</strong>
-        </div>
-      </div>
-
-      <div class="description-section">
-        <span>Alasan Pembatalan</span>
-
-        <p>
-          {{ achievement.cancelReason || 'Tidak ada alasan.' }}
-        </p>
-      </div>
-    </div>
+    </template>
 
     <!-- Not Found -->
-    <div v-if="!achievement" class="not-found">
+    <div v-else class="not-found">
       <div class="not-found-icon">
         <Trophy :size="32" />
       </div>
 
       <h2>Data prestasi tidak ditemukan</h2>
 
-      <p>
-        Data prestasi yang Anda cari tidak tersedia.
-      </p>
+      <p>Data prestasi yang Anda cari tidak tersedia.</p>
 
       <button class="back-button large" @click="goBack">
         <ArrowLeft :size="18" />
@@ -181,168 +186,227 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import {
-  ArrowLeft,
-  Pencil,
-  Trophy,
-  CircleAlert
-} from 'lucide-vue-next'
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
-const route = useRoute()
-const router = useRouter()
+import { ArrowLeft, CircleAlert, Pencil, Trophy } from "lucide-vue-next";
 
-const achievements = [
-  {
-    id: 1,
-    namaSiswa: 'Ahmad Fauzan',
-    nis: '2024001',
-    tingkatSiswa: '10',
-    jurusan: 'RPL',
-    nomorKelas: 1,
-    namaPrestasi: 'Juara 1 Lomba Web Design',
-    tingkat: 'kabupaten',
-    poinTercatat: 30,
-    tanggalPrestasi: '2026-08-12',
-    keterangan:
-      'Juara 1 lomba web design tingkat kabupaten yang diselenggarakan oleh Dinas Pendidikan.',
-    status: 'aktif',
-    dicatatOleh: 'Ahmad Fauzi'
-  },
-  {
-    id: 2,
-    namaSiswa: 'Siti Aisyah',
-    nis: '2024002',
-    tingkatSiswa: '11',
-    jurusan: 'TKR',
-    nomorKelas: 2,
-    namaPrestasi: 'Juara 2 Olimpiade Matematika',
-    tingkat: 'provinsi',
-    poinTercatat: 40,
-    tanggalPrestasi: '2026-08-18',
-    keterangan:
-      'Juara 2 olimpiade matematika tingkat provinsi.',
-    status: 'aktif',
-    dicatatOleh: 'Budi Santoso'
-  },
-  {
-    id: 3,
-    namaSiswa: 'Muhammad Rizky',
-    nis: '2024003',
-    tingkatSiswa: '12',
-    jurusan: 'TSM',
-    nomorKelas: 3,
-    namaPrestasi: 'Juara 1 Futsal',
-    tingkat: 'sekolah',
-    poinTercatat: 10,
-    tanggalPrestasi: '2026-08-20',
-    keterangan:
-      'Juara 1 turnamen futsal antar kelas.',
-    status: 'aktif',
-    dicatatOleh: 'Ahmad Fauzi'
-  },
-  {
-    id: 4,
-    namaSiswa: 'Fajar Ramadhan',
-    nis: '2024004',
-    tingkatSiswa: '11',
-    jurusan: 'RPL',
-    nomorKelas: 1,
-    namaPrestasi: 'Peserta Olimpiade Sains',
-    tingkat: 'nasional',
-    poinTercatat: 50,
-    tanggalPrestasi: '2026-08-25',
-    keterangan:
-      'Peserta olimpiade sains tingkat nasional.',
-    status: 'dibatalkan',
-    dicatatOleh: 'Budi Santoso',
-    cancelledBy: 'Ahmad Fauzi',
-    cancelledAt: '2026-08-27 10:30:00',
-    cancelReason:
-      'Dokumen bukti prestasi tidak sesuai dengan data yang diajukan.'
-  },
-  {
-    id: 5,
-    namaSiswa: 'Nurul Hidayah',
-    nis: '2024005',
-    tingkatSiswa: '10',
-    jurusan: 'TKR',
-    nomorKelas: 2,
-    namaPrestasi: 'Juara 3 Pidato Bahasa Arab',
-    tingkat: 'kecamatan',
-    poinTercatat: 20,
-    tanggalPrestasi: '2026-08-28',
-    keterangan:
-      'Juara 3 lomba pidato bahasa Arab tingkat kecamatan.',
-    status: 'aktif',
-    dicatatOleh: 'Ahmad Fauzi'
+const route = useRoute();
+const router = useRouter();
+
+/*
+|--------------------------------------------------------------------------
+| State
+|--------------------------------------------------------------------------
+*/
+
+const loading = ref(true);
+const achievement = ref(null);
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
+
+const getErrorMessage = (error) => {
+  return (
+    error?.response?.data?.message ||
+    "Terjadi kesalahan saat memuat data prestasi."
+  );
+};
+
+const normalizeAchievement = (data) => {
+  const student = data.student || {};
+  const user = student.user || {};
+  const category = data.category || {};
+  const staff = data.staff || {};
+  const staffUser = staff.user || {};
+  const cancelledBy = data.cancelled_by || data.cancelledBy || null;
+
+  return {
+    id: Number(data.id),
+
+    namaSiswa: user.name || user.nama || student.nama || student.name || "-",
+
+    nis: student.nis || "-",
+
+    tingkatSiswa: student.tingkat || "-",
+
+    jurusan: student.jurusan || "-",
+
+    nomorKelas: student.nomor_kelas ?? student.nomorKelas ?? "-",
+
+    namaPrestasi:
+      category.nama_prestasi ||
+      category.namaPrestasi ||
+      category.nama ||
+      category.name ||
+      "-",
+
+    tingkat: category.tingkat || "-",
+
+    poinTercatat: Number(data.poin_tercatat ?? 0),
+
+    tanggalPrestasi: data.tanggal_prestasi || "",
+
+    keterangan: data.keterangan || "",
+
+    status: data.status || "aktif",
+
+    dicatatOleh: staffUser.name || staffUser.nama || staff.nama || "-",
+
+    cancelledBy: cancelledBy?.name || cancelledBy?.nama || "-",
+
+    cancelledAt: data.cancelled_at || null,
+
+    cancelReason: data.cancel_reason || "",
+  };
+};
+
+/*
+|--------------------------------------------------------------------------
+| Load Data
+|--------------------------------------------------------------------------
+*/
+
+const loadAchievement = async () => {
+  loading.value = true;
+
+  try {
+    const id = Number(route.params.id);
+
+    if (!id) {
+      achievement.value = null;
+      return;
+    }
+
+    const response = await api.get(`/staff/achievements/${id}`);
+
+    const data = response.data?.data;
+
+    if (!data) {
+      achievement.value = null;
+      return;
+    }
+
+    achievement.value = normalizeAchievement(data);
+  } catch (error) {
+    console.error("Gagal memuat detail prestasi:", error);
+
+    achievement.value = null;
+
+    window.alert(getErrorMessage(error));
+  } finally {
+    loading.value = false;
   }
-]
+};
 
-const achievement = computed(() => {
-  const id = Number(route.params.id)
-
-  return achievements.find(item => item.id === id)
-})
+/*
+|--------------------------------------------------------------------------
+| Formatting
+|--------------------------------------------------------------------------
+*/
 
 const getInitial = (name) => {
-  if (!name) return '?'
+  if (!name) {
+    return "?";
+  }
 
   return name
-    .split(' ')
-    .map(word => word.charAt(0))
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0))
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
+    .join("")
+    .toUpperCase();
+};
 
 const getLevelLabel = (level) => {
   const labels = {
-    sekolah: 'Sekolah',
-    kecamatan: 'Kecamatan',
-    kabupaten: 'Kabupaten',
-    provinsi: 'Provinsi',
-    nasional: 'Nasional',
-    internasional: 'Internasional'
-  }
+    sekolah: "Sekolah",
+    kecamatan: "Kecamatan",
+    kabupaten: "Kabupaten",
+    provinsi: "Provinsi",
+    nasional: "Nasional",
+    internasional: "Internasional",
+  };
 
-  return labels[level] || level
-}
+  return labels[level] || level || "-";
+};
 
 const getStatusLabel = (status) => {
-  return status === 'aktif' ? 'Aktif' : 'Dibatalkan'
-}
+  return status === "aktif" ? "Aktif" : "Dibatalkan";
+};
 
 const formatDate = (date) => {
-  return new Intl.DateTimeFormat('id-ID', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  }).format(new Date(date))
-}
+  if (!date) {
+    return "-";
+  }
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(parsedDate);
+};
 
 const formatDateTime = (date) => {
-  return new Intl.DateTimeFormat('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(date))
-}
+  if (!date) {
+    return "-";
+  }
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(parsedDate);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Navigation
+|--------------------------------------------------------------------------
+*/
 
 const goBack = () => {
-  router.push('/staff/prestasi')
-}
+  router.push("/staff/prestasi");
+};
 
 const goToEdit = () => {
-  if (!achievement.value) return
+  if (!achievement.value) {
+    return;
+  }
 
-  router.push(`/staff/prestasi/${achievement.value.id}/edit`)
-}
+  router.push(`/staff/prestasi/${achievement.value.id}/edit`);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Lifecycle
+|--------------------------------------------------------------------------
+*/
+
+onMounted(() => {
+  loadAchievement();
+});
 </script>
 
 <style scoped>
@@ -651,6 +715,38 @@ const goToEdit = () => {
   margin: 0;
   color: #64748b;
   font-size: 13px;
+}
+
+.loading-card {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.loading-card p {
+  margin: 14px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .not-found {

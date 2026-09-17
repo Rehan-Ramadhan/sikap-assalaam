@@ -1,7 +1,6 @@
 <template>
   <AppLayout>
     <div class="page-container">
-      <!-- Header -->
       <div class="page-header">
         <div>
           <button class="back-button" @click="goBack">
@@ -14,12 +13,13 @@
         </div>
       </div>
 
-      <!-- Loading / Not Found -->
+      <!-- Loading -->
       <div v-if="loading" class="state-card">
         <div class="spinner"></div>
         <p>Memuat data prestasi...</p>
       </div>
 
+      <!-- Not Found -->
       <div v-else-if="!achievement" class="state-card">
         <div class="empty-icon">
           <CircleAlert :size="28" />
@@ -36,7 +36,6 @@
       <!-- Form -->
       <div v-else class="form-card">
         <form @submit.prevent="handleSubmit">
-
           <!-- Data Siswa -->
           <div class="form-section">
             <div class="section-title">
@@ -50,11 +49,9 @@
 
             <div class="form-grid">
               <div class="form-group full-width">
-                <label for="student">
-                  Siswa <span>*</span>
-                </label>
+                <label for="student"> Siswa <span>*</span> </label>
 
-                <select id="student" v-model="form.studentId">
+                <select id="student" v-model="form.studentId" disabled>
                   <option value="">Pilih siswa</option>
 
                   <option
@@ -86,9 +83,7 @@
 
             <div class="form-grid">
               <div class="form-group">
-                <label for="achievement">
-                  Nama Prestasi <span>*</span>
-                </label>
+                <label for="achievement"> Nama Prestasi <span>*</span> </label>
 
                 <select
                   id="achievement"
@@ -132,9 +127,7 @@
               </div>
 
               <div class="form-group">
-                <label for="tanggal">
-                  Tanggal Prestasi <span>*</span>
-                </label>
+                <label for="tanggal"> Tanggal Prestasi <span>*</span> </label>
 
                 <input
                   id="tanggal"
@@ -168,8 +161,8 @@
               <strong>Perhatian</strong>
 
               <p>
-                Jika kategori prestasi diubah, poin yang tercatat juga
-                akan mengikuti poin dari kategori tersebut.
+                Jika kategori prestasi diubah, poin yang tercatat juga akan
+                mengikuti poin dari kategori tersebut.
               </p>
             </div>
           </div>
@@ -179,14 +172,19 @@
             <button
               type="button"
               class="btn btn-secondary"
+              :disabled="submitting"
               @click="goBack"
             >
               Batal
             </button>
 
-            <button type="submit" class="btn btn-primary">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              :disabled="submitting"
+            >
               <Save :size="18" />
-              Simpan Perubahan
+              {{ submitting ? "Menyimpan..." : "Simpan Perubahan" }}
             </button>
           </div>
         </form>
@@ -196,10 +194,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
 import {
   ArrowLeft,
@@ -207,11 +206,11 @@ import {
   Plus,
   Save,
   Trophy,
-  UserRound
-} from 'lucide-vue-next'
+  UserRound,
+} from "lucide-vue-next";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 /*
 |--------------------------------------------------------------------------
@@ -219,121 +218,12 @@ const router = useRouter()
 |--------------------------------------------------------------------------
 */
 
-const loading = ref(true)
-const achievement = ref(null)
+const loading = ref(true);
+const submitting = ref(false);
+const achievement = ref(null);
 
-/*
-|--------------------------------------------------------------------------
-| Dummy Data
-|--------------------------------------------------------------------------
-*/
-
-const students = [
-  {
-    id: 1,
-    nama: 'Ahmad Fauzan',
-    nis: '2024001',
-    tingkat: '11',
-    jurusan: 'RPL',
-    nomorKelas: 1
-  },
-  {
-    id: 2,
-    nama: 'Siti Aisyah',
-    nis: '2024002',
-    tingkat: '10',
-    jurusan: 'RPL',
-    nomorKelas: 2
-  },
-  {
-    id: 3,
-    nama: 'Muhammad Rizky',
-    nis: '2024003',
-    tingkat: '12',
-    jurusan: 'TKR',
-    nomorKelas: 1
-  },
-  {
-    id: 4,
-    nama: 'Nurul Hidayah',
-    nis: '2024004',
-    tingkat: '11',
-    jurusan: 'TSM',
-    nomorKelas: 2
-  }
-]
-
-const categories = [
-  {
-    id: 1,
-    namaPrestasi: 'Juara 1 Lomba Akademik',
-    poin: 50,
-    tingkat: 'sekolah'
-  },
-  {
-    id: 2,
-    namaPrestasi: 'Juara 1 Lomba Tingkat Kecamatan',
-    poin: 75,
-    tingkat: 'kecamatan'
-  },
-  {
-    id: 3,
-    namaPrestasi: 'Juara 2 Olimpiade Kabupaten',
-    poin: 100,
-    tingkat: 'kabupaten'
-  },
-  {
-    id: 4,
-    namaPrestasi: 'Juara 1 Kompetisi Provinsi',
-    poin: 150,
-    tingkat: 'provinsi'
-  },
-  {
-    id: 5,
-    namaPrestasi: 'Juara Nasional',
-    poin: 250,
-    tingkat: 'nasional'
-  }
-]
-
-const dummyAchievements = [
-  {
-    id: 1,
-    studentId: 1,
-    categoryId: 5,
-    tanggalPrestasi: '2026-08-10',
-    keterangan:
-      'Meraih juara nasional dalam kompetisi akademik tingkat nasional.',
-    status: 'aktif'
-  },
-  {
-    id: 2,
-    studentId: 2,
-    categoryId: 2,
-    tanggalPrestasi: '2026-07-18',
-    keterangan:
-      'Juara 1 lomba tingkat kecamatan mewakili sekolah.',
-    status: 'aktif'
-  },
-  {
-    id: 3,
-    studentId: 3,
-    categoryId: 3,
-    tanggalPrestasi: '2026-06-22',
-    keterangan:
-      'Meraih juara 2 pada olimpiade tingkat kabupaten.',
-    status: 'aktif'
-  },
-  {
-    id: 4,
-    studentId: 4,
-    categoryId: 1,
-    tanggalPrestasi: '2026-05-15',
-    keterangan:
-      'Juara 1 lomba akademik internal sekolah.',
-    status: 'aktif'
-  }
-]
+const students = ref([]);
+const categories = ref([]);
 
 /*
 |--------------------------------------------------------------------------
@@ -342,17 +232,17 @@ const dummyAchievements = [
 */
 
 const form = reactive({
-  studentId: '',
-  categoryId: '',
-  tanggalPrestasi: '',
-  keterangan: ''
-})
+  studentId: "",
+  categoryId: "",
+  tanggalPrestasi: "",
+  keterangan: "",
+});
 
 const errors = reactive({
-  studentId: '',
-  categoryId: '',
-  tanggalPrestasi: ''
-})
+  studentId: "",
+  categoryId: "",
+  tanggalPrestasi: "",
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -362,11 +252,142 @@ const errors = reactive({
 
 const selectedCategory = computed(() => {
   return (
-    categories.find(
-      category => category.id === Number(form.categoryId)
+    categories.value.find(
+      (category) => category.id === Number(form.categoryId),
     ) || null
-  )
-})
+  );
+});
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
+
+const unwrapData = (payload) => {
+  const data = payload?.data;
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
+};
+
+const getErrorMessage = (error) => {
+  return (
+    error?.response?.data?.message || "Terjadi kesalahan. Silakan coba lagi."
+  );
+};
+
+const normalizeStudent = (student) => {
+  return {
+    id: Number(student.id),
+    nama:
+      student.user?.name ||
+      student.user?.nama ||
+      student.nama ||
+      student.name ||
+      "-",
+    nis: student.nis || "-",
+    tingkat: student.tingkat || "-",
+    jurusan: student.jurusan || "-",
+    nomorKelas: student.nomor_kelas ?? student.nomorKelas ?? null,
+  };
+};
+
+const normalizeCategory = (category) => {
+  return {
+    id: Number(category.id),
+    namaPrestasi:
+      category.nama_prestasi ||
+      category.namaPrestasi ||
+      category.nama ||
+      category.name ||
+      "-",
+    poin: Number(category.poin ?? 0),
+    tingkat: category.tingkat || "-",
+    status: category.status,
+  };
+};
+
+/*
+|--------------------------------------------------------------------------
+| Load Students
+|--------------------------------------------------------------------------
+*/
+
+const loadStudents = async () => {
+  const response = await api.get("/staff/students", {
+    params: {
+      status: "aktif",
+      per_page: 100,
+    },
+  });
+
+  students.value = unwrapData(response.data).map(normalizeStudent);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Load Categories
+|--------------------------------------------------------------------------
+*/
+
+const loadCategories = async () => {
+  const response = await api.get("/staff/achievement-categories", {
+    params: {
+      per_page: 100,
+    },
+  });
+
+  categories.value = unwrapData(response.data)
+    .map(normalizeCategory)
+    .filter((category) => {
+      return (
+        category.status === undefined ||
+        category.status === null ||
+        category.status === true ||
+        category.status === 1 ||
+        category.status === "aktif"
+      );
+    });
+};
+
+/*
+|--------------------------------------------------------------------------
+| Load Achievement
+|--------------------------------------------------------------------------
+*/
+
+const loadAchievement = async () => {
+  const id = Number(route.params.id);
+
+  if (!id) {
+    achievement.value = null;
+    return;
+  }
+
+  const response = await api.get(`/staff/achievements/${id}`);
+
+  const data = response.data?.data;
+
+  if (!data) {
+    achievement.value = null;
+    return;
+  }
+
+  achievement.value = data;
+
+  form.studentId = String(data.student_id ?? data.student?.id ?? "");
+  form.categoryId = String(data.category_id ?? data.category?.id ?? "");
+  form.tanggalPrestasi = data.tanggal_prestasi || "";
+  form.keterangan = data.keterangan || "";
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -374,26 +395,21 @@ const selectedCategory = computed(() => {
 |--------------------------------------------------------------------------
 */
 
-const loadAchievement = () => {
-  loading.value = true
+const loadData = async () => {
+  loading.value = true;
 
-  const id = Number(route.params.id)
+  try {
+    await Promise.all([loadStudents(), loadCategories(), loadAchievement()]);
+  } catch (error) {
+    console.error("Gagal memuat data edit prestasi:", error);
 
-  const data = dummyAchievements.find(
-    item => item.id === id
-  )
+    achievement.value = null;
 
-  if (data) {
-    achievement.value = data
-
-    form.studentId = String(data.studentId)
-    form.categoryId = String(data.categoryId)
-    form.tanggalPrestasi = data.tanggalPrestasi
-    form.keterangan = data.keterangan || ''
+    window.alert(getErrorMessage(error));
+  } finally {
+    loading.value = false;
   }
-
-  loading.value = false
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -402,29 +418,29 @@ const loadAchievement = () => {
 */
 
 const validateForm = () => {
-  errors.studentId = ''
-  errors.categoryId = ''
-  errors.tanggalPrestasi = ''
+  errors.studentId = "";
+  errors.categoryId = "";
+  errors.tanggalPrestasi = "";
 
-  let valid = true
+  let valid = true;
 
   if (!form.studentId) {
-    errors.studentId = 'Siswa wajib dipilih.'
-    valid = false
+    errors.studentId = "Siswa wajib dipilih.";
+    valid = false;
   }
 
   if (!form.categoryId) {
-    errors.categoryId = 'Prestasi wajib dipilih.'
-    valid = false
+    errors.categoryId = "Prestasi wajib dipilih.";
+    valid = false;
   }
 
   if (!form.tanggalPrestasi) {
-    errors.tanggalPrestasi = 'Tanggal prestasi wajib diisi.'
-    valid = false
+    errors.tanggalPrestasi = "Tanggal prestasi wajib diisi.";
+    valid = false;
   }
 
-  return valid
-}
+  return valid;
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -433,45 +449,57 @@ const validateForm = () => {
 */
 
 const handleCategoryChange = () => {
-  errors.categoryId = ''
-}
+  errors.categoryId = "";
+};
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!validateForm()) {
-    return
+    return;
   }
 
-  const student = students.find(
-    item => item.id === Number(form.studentId)
-  )
+  const id = Number(route.params.id);
 
-  const category = categories.find(
-    item => item.id === Number(form.categoryId)
-  )
-
-  const updatedData = {
-    id: Number(route.params.id),
-    studentId: Number(form.studentId),
-    studentName: student?.nama,
-    categoryId: Number(form.categoryId),
-    namaPrestasi: category?.namaPrestasi,
-    tingkat: category?.tingkat,
-    poin: category?.poin,
-    tanggalPrestasi: form.tanggalPrestasi,
-    keterangan: form.keterangan.trim(),
-    status: achievement.value.status
+  if (!id) {
+    window.alert("ID prestasi tidak valid.");
+    return;
   }
 
-  console.log('Data prestasi diperbarui:', updatedData)
+  submitting.value = true;
 
-  alert('Data prestasi berhasil diperbarui.')
+  try {
+    const payload = {
+      category_id: Number(form.categoryId),
+      tanggal_prestasi: form.tanggalPrestasi,
+      keterangan: form.keterangan.trim() || null,
+    };
 
-  router.push(`/staff/prestasi/${route.params.id}`)
-}
+    const response = await api.put(`/staff/achievements/${id}`, payload);
+
+    achievement.value = response.data?.data || achievement.value;
+
+    window.alert(response.data?.message || "Prestasi berhasil diperbarui.");
+
+    router.push(`/staff/prestasi/${id}`);
+  } catch (error) {
+    console.error("Gagal memperbarui prestasi:", error);
+
+    const validationErrors = error?.response?.data?.errors;
+
+    if (validationErrors) {
+      errors.categoryId = validationErrors.category_id?.[0] || "";
+
+      errors.tanggalPrestasi = validationErrors.tanggal_prestasi?.[0] || "";
+    }
+
+    window.alert(getErrorMessage(error));
+  } finally {
+    submitting.value = false;
+  }
+};
 
 const goBack = () => {
-  router.push(`/staff/prestasi/${route.params.id}`)
-}
+  router.push(`/staff/prestasi/${route.params.id}`);
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -480,8 +508,8 @@ const goBack = () => {
 */
 
 onMounted(() => {
-  loadAchievement()
-})
+  loadData();
+});
 </script>
 
 <style scoped>
@@ -620,6 +648,12 @@ onMounted(() => {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.form-group select:disabled {
+  background: #f7f9fc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
 .readonly-input {
   background: #f7f9fc !important;
   color: #64748b !important;
@@ -694,12 +728,17 @@ onMounted(() => {
   transition: 0.2s;
 }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-secondary {
   background: #f1f5f9;
   color: #475569;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: #e2e8f0;
 }
 
@@ -708,7 +747,7 @@ onMounted(() => {
   color: #fff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: #1d4ed8;
 }
 

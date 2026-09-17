@@ -1,7 +1,6 @@
 <template>
   <AppLayout>
     <div class="student-page">
-
       <!-- HEADER -->
       <div class="page-header">
         <div>
@@ -15,6 +14,17 @@
         </button>
       </div>
 
+      <!-- ERROR -->
+      <div v-if="errorMessage" class="alert alert-error">
+        <CircleAlert :size="18" />
+
+        <span>{{ errorMessage }}</span>
+
+        <button type="button" class="retry-btn" @click="fetchStudents">
+          Coba lagi
+        </button>
+      </div>
+
       <!-- SEARCH -->
       <div class="filter-card">
         <div class="search-box">
@@ -24,23 +34,31 @@
             v-model="searchQuery"
             type="text"
             placeholder="Cari nama siswa atau NIS..."
+            :disabled="loading"
           />
         </div>
       </div>
 
       <!-- TABLE -->
       <div class="table-card">
-
         <div class="table-header">
           <div>
             <h2>Daftar Siswa</h2>
-            <span>
+
+            <span v-if="!loading">
               {{ filteredStudents.length }} data siswa ditemukan
             </span>
+
+            <span v-else> Memuat data siswa... </span>
           </div>
         </div>
 
-        <div class="table-wrapper">
+        <div v-if="loading" class="loading-state">
+          <LoaderCircle :size="26" class="spin" />
+          <span>Memuat data siswa...</span>
+        </div>
+
+        <div v-else class="table-wrapper">
           <table>
             <thead>
               <tr>
@@ -80,9 +98,7 @@
 
                 <!-- TINGKAT -->
                 <td>
-                  <span class="level-badge">
-                    Kelas {{ student.tingkat }}
-                  </span>
+                  <span class="level-badge"> Kelas {{ student.tingkat }} </span>
                 </td>
 
                 <!-- JURUSAN -->
@@ -105,7 +121,6 @@
                 <!-- AKSI -->
                 <td>
                   <div class="action-buttons">
-
                     <button
                       class="action-btn view"
                       title="Lihat detail"
@@ -125,11 +140,13 @@
                     <button
                       class="action-btn delete"
                       title="Hapus siswa"
+                      :disabled="deleting"
                       @click="deleteStudent(student)"
                     >
-                      <Trash2 :size="17" />
-                    </button>
+                      <LoaderCircle v-if="deleting" :size="17" class="spin" />
 
+                      <Trash2 v-else :size="17" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -144,152 +161,196 @@
 
                     <strong>Data siswa tidak ditemukan</strong>
 
-                    <span>
-                      Tidak ada siswa yang sesuai dengan pencarian.
-                    </span>
+                    <span> Tidak ada siswa yang sesuai dengan pencarian. </span>
                   </div>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-
       </div>
-
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import {
   Plus,
   Search,
-  User,
   Eye,
   Pencil,
   Trash2,
-  Users
-} from 'lucide-vue-next'
+  Users,
+  LoaderCircle,
+  CircleAlert,
+} from "lucide-vue-next";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
-const router = useRouter()
+const router = useRouter();
 
-const searchQuery = ref('')
+const searchQuery = ref("");
+const students = ref([]);
 
-/*
-|--------------------------------------------------------------------------
-| Dummy Data
-|--------------------------------------------------------------------------
-*/
+const loading = ref(false);
+const deleting = ref(false);
+const errorMessage = ref("");
 
-const students = ref([
-  {
-    id: 1,
-    nama: 'Ahmad Fauzan',
-    nis: '2026001',
-    tingkat: '10',
-    jurusan: 'RPL',
-    nomorKelas: 1,
-    jenisKelamin: 'Laki-laki'
-  },
-  {
-    id: 2,
-    nama: 'Muhammad Rizky',
-    nis: '2026002',
-    tingkat: '10',
-    jurusan: 'TKR',
-    nomorKelas: 2,
-    jenisKelamin: 'Laki-laki'
-  },
-  {
-    id: 3,
-    nama: 'Siti Aisyah',
-    nis: '2025001',
-    tingkat: '11',
-    jurusan: 'RPL',
-    nomorKelas: 1,
-    jenisKelamin: 'Perempuan'
+const normalizeStudent = (student) => {
+  return {
+    id: student?.id,
+    nama: student?.name ?? student?.nama ?? "-",
+    nis: student?.nis ?? "-",
+    tingkat: String(student?.tingkat ?? student?.level ?? "-"),
+    jurusan: student?.jurusan ?? student?.major ?? "-",
+    nomorKelas:
+      student?.nomor_kelas ??
+      student?.nomorKelas ??
+      student?.class_number ??
+      "-",
+    jenisKelamin: normalizeGender(
+      student?.jenis_kelamin ?? student?.jenisKelamin ?? student?.gender,
+    ),
+    tahunMasuk:
+      student?.tahun_masuk ?? student?.tahunMasuk ?? student?.entry_year ?? "-",
+    status: normalizeStatus(student?.status),
+    email: student?.email ?? student?.user?.email ?? "-",
+  };
+};
+
+const normalizeGender = (gender) => {
+  if (!gender) return "-";
+
+  const value = String(gender).toLowerCase();
+
+  if (value === "l" || value === "laki-laki" || value === "male") {
+    return "Laki-laki";
   }
-])
 
-/*
-|--------------------------------------------------------------------------
-| Search
-|--------------------------------------------------------------------------
-*/
+  if (value === "p" || value === "perempuan" || value === "female") {
+    return "Perempuan";
+  }
+
+  return gender;
+};
+
+const normalizeStatus = (status) => {
+  if (!status) return "-";
+
+  const value = String(status).toLowerCase();
+
+  if (value === "aktif" || value === "active") {
+    return "Aktif";
+  }
+
+  if (value === "nonaktif" || value === "inactive") {
+    return "Nonaktif";
+  }
+
+  if (value === "lulus" || value === "graduated") {
+    return "Lulus";
+  }
+
+  return status;
+};
+
+const fetchStudents = async () => {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await api.get("/staff/students");
+
+    const data = response.data?.data ?? response.data;
+
+    if (Array.isArray(data)) {
+      students.value = data.map(normalizeStudent);
+    } else if (Array.isArray(data?.data)) {
+      students.value = data.data.map(normalizeStudent);
+    } else {
+      students.value = [];
+    }
+  } catch (error) {
+    console.error("Gagal mengambil data siswa:", error);
+
+    errorMessage.value =
+      error.response?.data?.message ||
+      "Tidak dapat mengambil data siswa dari server Laravel.";
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(fetchStudents);
 
 const filteredStudents = computed(() => {
-  const query = searchQuery.value
-    .trim()
-    .toLowerCase()
+  const query = searchQuery.value.trim().toLowerCase();
 
   if (!query) {
-    return students.value
+    return students.value;
   }
 
   return students.value.filter((student) => {
-    const nama = String(student.nama ?? '').toLowerCase()
-    const nis = String(student.nis ?? '').toLowerCase()
+    const nama = String(student.nama ?? "").toLowerCase();
+    const nis = String(student.nis ?? "").toLowerCase();
 
-    return (
-      nama.includes(query) ||
-      nis.includes(query)
-    )
-  })
-})
+    return nama.includes(query) || nis.includes(query);
+  });
+});
 
 const getInitial = (name) => {
-  if (!name) return '?'
+  if (!name || name === "-") return "?";
 
   return name
-    .split(' ')
-    .map(word => word.charAt(0))
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0))
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-/*
-|--------------------------------------------------------------------------
-| Navigation
-|--------------------------------------------------------------------------
-*/
+    .join("")
+    .toUpperCase();
+};
 
 const goToCreate = () => {
-  router.push('/staff/siswa/create')
-}
+  router.push("/staff/siswa/create");
+};
 
 const goToShow = (id) => {
-  router.push(`/staff/siswa/${id}`)
-}
+  router.push(`/staff/siswa/${id}`);
+};
 
 const goToEdit = (id) => {
-  router.push(`/staff/siswa/${id}/edit`)
-}
+  router.push(`/staff/siswa/${id}/edit`);
+};
 
-/*
-|--------------------------------------------------------------------------
-| Delete Dummy Data
-|--------------------------------------------------------------------------
-*/
-
-const deleteStudent = (student) => {
+const deleteStudent = async (student) => {
   const confirmed = window.confirm(
-    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`
-  )
+    `Apakah kamu yakin ingin menghapus siswa "${student.nama}"?`,
+  );
 
   if (!confirmed) {
-    return
+    return;
   }
 
-  students.value = students.value.filter(
-    (item) => item.id !== student.id
-  )
-}
+  deleting.value = true;
+  errorMessage.value = "";
+
+  try {
+    await api.delete(`/staff/students/${student.id}`);
+
+    students.value = students.value.filter((item) => item.id !== student.id);
+  } catch (error) {
+    console.error("Gagal menghapus siswa:", error);
+
+    errorMessage.value =
+      error.response?.data?.message || "Gagal menghapus data siswa.";
+  } finally {
+    deleting.value = false;
+  }
+};
 </script>
 
 <style scoped>

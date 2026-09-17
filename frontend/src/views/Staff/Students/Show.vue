@@ -1,290 +1,363 @@
 <template>
   <AppLayout>
     <div class="student-show">
-
-      <!-- Header -->
-      <div class="page-header">
-        <div>
-          <button class="back-btn" @click="goBack">
-            <ArrowLeft :size="18" />
-            Kembali
-          </button>
-
-          <div class="title-row">
-            <div class="student-avatar">
-              {{ getInitial(student.nama) }}
-            </div>
-
-            <div>
-              <span class="section-label">
-                PROFIL SISWA
-              </span>
-
-              <h1>{{ student.nama }}</h1>
-
-              <p>
-                NIS {{ student.nis }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <button
-          v-if="student.id"
-          class="btn btn-primary"
-          @click="goToEdit"
-        >
-          <Pencil :size="17" />
-          Edit Data
-        </button>
+      <!-- Loading -->
+      <div v-if="loading" class="state-card">
+        <LoaderCircle :size="22" class="loading-icon" />
+        <span>Memuat data siswa...</span>
       </div>
 
-      <!-- Status -->
-      <div class="status-card">
-        <div class="status-left">
-          <div class="status-icon">
-            <UserRound :size="19" />
-          </div>
-
-          <div>
-            <span>Status Siswa</span>
-            <strong>{{ student.status }}</strong>
-          </div>
+      <!-- Error -->
+      <div v-else-if="errorMessage" class="state-card error-state">
+        <CircleAlert :size="22" />
+        <div>
+          <strong>Gagal memuat data siswa</strong>
+          <p>{{ errorMessage }}</p>
         </div>
-
-        <span
-          class="status-badge"
-          :class="getStatusClass(student.status)"
-        >
-          {{ student.status }}
-        </span>
       </div>
 
       <!-- Content -->
-      <div class="content-grid">
+      <template v-else>
+        <!-- Header -->
+        <div class="page-header">
+          <div>
+            <button class="back-btn" @click="goBack">
+              <ArrowLeft :size="18" />
+              Kembali
+            </button>
 
-        <!-- Akademik -->
-        <section class="info-card">
+            <div class="title-row">
+              <div class="student-avatar">
+                {{ getInitial(student.nama) }}
+              </div>
 
-          <div class="card-heading">
-            <div class="heading-icon">
-              <GraduationCap :size="19" />
-            </div>
+              <div>
+                <span class="section-label"> PROFIL SISWA </span>
 
-            <div>
-              <h2>Informasi Akademik</h2>
-              <p>Informasi akademik siswa</p>
+                <h1>{{ student.nama }}</h1>
+
+                <p>NIS {{ student.nis }}</p>
+              </div>
             </div>
           </div>
 
-          <div class="info-grid">
+          <button v-if="student.id" class="btn btn-primary" @click="goToEdit">
+            <Pencil :size="17" />
+            Edit Data
+          </button>
+        </div>
 
-            <div class="info-item">
-              <span>NIS</span>
-              <strong>{{ student.nis }}</strong>
-            </div>
-
-            <div class="info-item">
-              <span>Tingkat</span>
-              <strong>Kelas {{ student.tingkat }}</strong>
-            </div>
-
-            <div class="info-item">
-              <span>Jurusan</span>
-              <strong>{{ student.jurusan }}</strong>
-            </div>
-
-            <div class="info-item">
-              <span>Nomor Kelas</span>
-              <strong>{{ student.nomorKelas }}</strong>
-            </div>
-
-            <div class="info-item">
-              <span>Tahun Masuk</span>
-              <strong>{{ student.tahunMasuk }}</strong>
-            </div>
-
-          </div>
-
-        </section>
-
-        <!-- Pribadi -->
-        <section class="info-card">
-
-          <div class="card-heading">
-            <div class="heading-icon">
+        <!-- Status -->
+        <div class="status-card">
+          <div class="status-left">
+            <div class="status-icon">
               <UserRound :size="19" />
             </div>
 
             <div>
-              <h2>Informasi Pribadi</h2>
-              <p>Informasi pribadi siswa</p>
-            </div>
-          </div>
-
-          <div class="info-grid">
-
-            <div class="info-item info-full">
-              <span>Nama Lengkap</span>
-              <strong>{{ student.nama }}</strong>
-            </div>
-
-            <div class="info-item">
-              <span>Jenis Kelamin</span>
-              <strong>{{ student.jenisKelamin }}</strong>
-            </div>
-
-            <div class="info-item">
-              <span>Status</span>
+              <span>Status Siswa</span>
               <strong>{{ student.status }}</strong>
             </div>
-
-            <div class="info-item info-full">
-              <span>Email</span>
-              <strong>{{ student.email }}</strong>
-            </div>
-
           </div>
 
+          <span class="status-badge" :class="getStatusClass(student.status)">
+            {{ student.status }}
+          </span>
+        </div>
+
+        <!-- Content -->
+        <div class="content-grid">
+          <!-- Akademik -->
+          <section class="info-card">
+            <div class="card-heading">
+              <div class="heading-icon">
+                <GraduationCap :size="19" />
+              </div>
+
+              <div>
+                <h2>Informasi Akademik</h2>
+                <p>Informasi akademik siswa</p>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <span>NIS</span>
+                <strong>{{ student.nis }}</strong>
+              </div>
+
+              <div class="info-item">
+                <span>Tingkat</span>
+                <strong>Kelas {{ student.tingkat }}</strong>
+              </div>
+
+              <div class="info-item">
+                <span>Jurusan</span>
+                <strong>{{ student.jurusan }}</strong>
+              </div>
+
+              <div class="info-item">
+                <span>Nomor Kelas</span>
+                <strong>{{ student.nomorKelas }}</strong>
+              </div>
+
+              <div class="info-item">
+                <span>Tahun Masuk</span>
+                <strong>{{ student.tahunMasuk }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <!-- Pribadi -->
+          <section class="info-card">
+            <div class="card-heading">
+              <div class="heading-icon">
+                <UserRound :size="19" />
+              </div>
+
+              <div>
+                <h2>Informasi Pribadi</h2>
+                <p>Informasi pribadi siswa</p>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item info-full">
+                <span>Nama Lengkap</span>
+                <strong>{{ student.nama }}</strong>
+              </div>
+
+              <div class="info-item">
+                <span>Jenis Kelamin</span>
+                <strong>{{ student.jenisKelamin }}</strong>
+              </div>
+
+              <div class="info-item">
+                <span>Status</span>
+                <strong>{{ student.status }}</strong>
+              </div>
+
+              <div class="info-item info-full">
+                <span>Email</span>
+                <strong>{{ student.email }}</strong>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Quick Info -->
+        <section class="account-card">
+          <div class="account-icon">
+            <Mail :size="19" />
+          </div>
+
+          <div class="account-content">
+            <span>Akun Siswa</span>
+            <strong>{{ student.email }}</strong>
+            <p>Email digunakan siswa untuk masuk ke sistem SIKAP Assalaam.</p>
+          </div>
         </section>
-
-      </div>
-
-      <!-- Quick Info -->
-      <section class="account-card">
-
-        <div class="account-icon">
-          <Mail :size="19" />
-        </div>
-
-        <div class="account-content">
-          <span>Akun Siswa</span>
-          <strong>{{ student.email }}</strong>
-          <p>
-            Email digunakan siswa untuk masuk ke sistem SIKAP Assalaam.
-          </p>
-        </div>
-
-      </section>
-
+      </template>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import {
   ArrowLeft,
   Pencil,
   UserRound,
   GraduationCap,
-  Mail
-} from 'lucide-vue-next'
+  Mail,
+  LoaderCircle,
+  CircleAlert,
+} from "lucide-vue-next";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const dummyStudents = {
-  1: {
-    id: 1,
-    nama: 'Ahmad Fauzan',
-    nis: '2026001',
-    tingkat: '10',
-    jurusan: 'RPL',
-    nomorKelas: 1,
-    jenisKelamin: 'Laki-laki',
-    tahunMasuk: 2026,
-    status: 'Aktif',
-    email: 'ahmad.fauzan@email.com'
-  },
+const loading = ref(true);
+const errorMessage = ref("");
 
-  2: {
-    id: 2,
-    nama: 'Muhammad Rizky',
-    nis: '2026002',
-    tingkat: '10',
-    jurusan: 'TKR',
-    nomorKelas: 2,
-    jenisKelamin: 'Laki-laki',
-    tahunMasuk: 2026,
-    status: 'Aktif',
-    email: 'muhammad.rizky@email.com'
-  },
+const student = ref({
+  id: null,
+  nama: "-",
+  nis: "-",
+  tingkat: "-",
+  jurusan: "-",
+  nomorKelas: "-",
+  jenisKelamin: "-",
+  tahunMasuk: "-",
+  status: "-",
+  email: "-",
+});
 
-  3: {
-    id: 3,
-    nama: 'Siti Aisyah',
-    nis: '2025001',
-    tingkat: '11',
-    jurusan: 'RPL',
-    nomorKelas: 1,
-    jenisKelamin: 'Perempuan',
-    tahunMasuk: 2025,
-    status: 'Aktif',
-    email: 'siti.aisyah@email.com'
+const normalizeGender = (gender) => {
+  if (!gender) return "-";
+
+  const value = String(gender).toLowerCase();
+
+  if (value === "l" || value === "laki-laki" || value === "male") {
+    return "Laki-laki";
   }
-}
 
-const student = ref(
-  dummyStudents[route.params.id] || {
-    id: null,
-    nama: 'Siswa Tidak Ditemukan',
-    nis: '-',
-    tingkat: '-',
-    jurusan: '-',
-    nomorKelas: '-',
-    jenisKelamin: '-',
-    tahunMasuk: '-',
-    status: '-',
-    email: '-'
+  if (value === "p" || value === "perempuan" || value === "female") {
+    return "Perempuan";
   }
-)
+
+  return gender;
+};
+
+const normalizeStatus = (status) => {
+  if (!status) return "-";
+
+  const value = String(status).toLowerCase();
+
+  if (value === "aktif" || value === "active") {
+    return "Aktif";
+  }
+
+  if (value === "nonaktif" || value === "inactive") {
+    return "Nonaktif";
+  }
+
+  if (value === "lulus" || value === "graduated") {
+    return "Lulus";
+  }
+
+  return status;
+};
+
+const normalizeStudent = (data) => {
+  return {
+    id: data?.id ?? null,
+    nama: data?.user?.name ?? data?.name ?? data?.nama ?? "-",
+    nis: data?.nis ?? "-",
+    tingkat: String(data?.tingkat ?? "-"),
+    jurusan: data?.jurusan ?? "-",
+    nomorKelas: data?.nomor_kelas ?? data?.nomorKelas ?? "-",
+    jenisKelamin: normalizeGender(
+      data?.jenis_kelamin ?? data?.jenisKelamin ?? data?.user?.jenis_kelamin,
+    ),
+    tahunMasuk: data?.tahun_masuk ?? data?.tahunMasuk ?? "-",
+    status: normalizeStatus(data?.status),
+    email: data?.user?.email ?? data?.email ?? "-",
+  };
+};
+
+const fetchStudent = async () => {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await api.get(`/staff/students/${route.params.id}`);
+
+    const data = response.data?.data ?? response.data?.student ?? response.data;
+
+    student.value = normalizeStudent(data);
+  } catch (error) {
+    console.error("Gagal mengambil detail siswa:", error);
+
+    errorMessage.value =
+      error.response?.data?.message ||
+      "Data siswa tidak ditemukan atau gagal diambil dari server Laravel.";
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(fetchStudent);
 
 const goBack = () => {
-  router.push('/staff/siswa')
-}
+  router.push("/staff/siswa");
+};
 
 const goToEdit = () => {
-  router.push(`/staff/siswa/${student.value.id}/edit`)
-}
+  if (!student.value.id) return;
+
+  router.push(`/staff/siswa/${student.value.id}/edit`);
+};
 
 const getInitial = (name) => {
-  if (!name || name === '-') {
-    return '?'
+  if (!name || name === "-") {
+    return "?";
   }
 
   return name
-    .split(' ')
+    .split(" ")
+    .filter(Boolean)
     .slice(0, 2)
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase()
-}
+    .map((word) => word.charAt(0))
+    .join("")
+    .toUpperCase();
+};
 
 const getStatusClass = (status) => {
-  if (status === 'Aktif') {
-    return 'status-active'
+  if (status === "Aktif") {
+    return "status-active";
   }
 
-  if (status === 'Nonaktif') {
-    return 'status-inactive'
+  if (status === "Nonaktif") {
+    return "status-inactive";
   }
 
-  if (status === 'Lulus') {
-    return 'status-graduated'
+  if (status === "Lulus") {
+    return "status-graduated";
   }
 
-  return ''
-}
+  return "";
+};
 </script>
 
 <style scoped>
 .student-show {
   width: 100%;
+}
+
+.state-card {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.error-state {
+  justify-content: flex-start;
+  padding: 24px;
+  color: #dc2626;
+}
+
+.error-state div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.error-state strong {
+  color: #334155;
+  font-size: 14px;
+}
+
+.error-state p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.loading-icon {
+  animation: spin 1s linear infinite;
 }
 
 .page-header {
@@ -568,6 +641,12 @@ const getStatusClass = (status) => {
   font-size: 12px;
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 800px) {
   .page-header {
     align-items: flex-start;
@@ -607,6 +686,10 @@ const getStatusClass = (status) => {
   }
 
   .account-card {
+    align-items: flex-start;
+  }
+
+  .error-state {
     align-items: flex-start;
   }
 }

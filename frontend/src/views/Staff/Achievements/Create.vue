@@ -14,6 +14,12 @@
         </div>
       </div>
 
+      <!-- Error -->
+      <div v-if="error" class="error-box">
+        <CircleAlert :size="18" />
+        <span>{{ error }}</span>
+      </div>
+
       <!-- Form -->
       <div class="form-card">
         <form @submit.prevent="handleSubmit">
@@ -29,12 +35,16 @@
 
             <div class="form-grid">
               <div class="form-group full-width">
-                <label for="student">
-                  Siswa <span>*</span>
-                </label>
+                <label for="student"> Siswa <span>*</span> </label>
 
-                <select id="student" v-model="form.studentId">
-                  <option value="">Pilih siswa</option>
+                <select
+                  id="student"
+                  v-model="form.studentId"
+                  :disabled="loadingStudents || submitting"
+                >
+                  <option value="">
+                    {{ loadingStudents ? "Memuat siswa..." : "Pilih siswa" }}
+                  </option>
 
                   <option
                     v-for="student in students"
@@ -64,16 +74,21 @@
 
             <div class="form-grid">
               <div class="form-group">
-                <label for="achievement">
-                  Nama Prestasi <span>*</span>
-                </label>
+                <label for="achievement"> Nama Prestasi <span>*</span> </label>
 
                 <select
                   id="achievement"
                   v-model="form.categoryId"
+                  :disabled="loadingCategories || submitting"
                   @change="handleCategoryChange"
                 >
-                  <option value="">Pilih prestasi</option>
+                  <option value="">
+                    {{
+                      loadingCategories
+                        ? "Memuat kategori..."
+                        : "Pilih prestasi"
+                    }}
+                  </option>
 
                   <option
                     v-for="category in categories"
@@ -111,14 +126,13 @@
               </div>
 
               <div class="form-group">
-                <label for="tanggal">
-                  Tanggal Prestasi <span>*</span>
-                </label>
+                <label for="tanggal"> Tanggal Prestasi <span>*</span> </label>
 
                 <input
                   id="tanggal"
                   v-model="form.tanggalPrestasi"
                   type="date"
+                  :disabled="submitting"
                 />
 
                 <small v-if="errors.tanggalPrestasi" class="error-text">
@@ -133,6 +147,7 @@
                   id="keterangan"
                   v-model="form.keterangan"
                   rows="5"
+                  :disabled="submitting"
                   placeholder="Tambahkan keterangan prestasi jika diperlukan..."
                 ></textarea>
               </div>
@@ -146,8 +161,8 @@
             <div>
               <strong>Informasi</strong>
               <p>
-                Poin prestasi dicatat sebagai poin prestasi siswa dan
-                tidak mengurangi poin pelanggaran.
+                Poin prestasi dicatat sebagai poin prestasi siswa dan tidak
+                mengurangi poin pelanggaran.
               </p>
             </div>
           </div>
@@ -157,14 +172,21 @@
             <button
               type="button"
               class="btn btn-secondary"
+              :disabled="submitting"
               @click="goBack"
             >
               Batal
             </button>
 
-            <button type="submit" class="btn btn-primary">
-              <Save :size="18" />
-              Simpan Prestasi
+            <button
+              type="submit"
+              class="btn btn-primary"
+              :disabled="submitting || loadingStudents || loadingCategories"
+            >
+              <Save v-if="!submitting" :size="18" />
+              <span v-if="submitting" class="loading-spinner"></span>
+
+              {{ submitting ? "Menyimpan..." : "Simpan Prestasi" }}
             </button>
           </div>
         </form>
@@ -174,10 +196,11 @@
 </template>
 
 <script setup>
-import { computed, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
 import {
   ArrowLeft,
@@ -185,84 +208,25 @@ import {
   Plus,
   Save,
   Trophy,
-  UserRound
-} from 'lucide-vue-next'
+  UserRound,
+} from "lucide-vue-next";
 
-const router = useRouter()
+const router = useRouter();
 
 /*
 |--------------------------------------------------------------------------
-| Dummy Data
+| State
 |--------------------------------------------------------------------------
 */
 
-const students = [
-  {
-    id: 1,
-    nama: 'Ahmad Fauzan',
-    nis: '2024001',
-    tingkat: '11',
-    jurusan: 'RPL',
-    nomorKelas: 1
-  },
-  {
-    id: 2,
-    nama: 'Siti Aisyah',
-    nis: '2024002',
-    tingkat: '10',
-    jurusan: 'RPL',
-    nomorKelas: 2
-  },
-  {
-    id: 3,
-    nama: 'Muhammad Rizky',
-    nis: '2024003',
-    tingkat: '12',
-    jurusan: 'TKR',
-    nomorKelas: 1
-  },
-  {
-    id: 4,
-    nama: 'Nurul Hidayah',
-    nis: '2024004',
-    tingkat: '11',
-    jurusan: 'TSM',
-    nomorKelas: 2
-  }
-]
+const students = ref([]);
+const categories = ref([]);
 
-const categories = [
-  {
-    id: 1,
-    namaPrestasi: 'Juara 1 Lomba Akademik',
-    poin: 50,
-    tingkat: 'sekolah'
-  },
-  {
-    id: 2,
-    namaPrestasi: 'Juara 1 Lomba Tingkat Kecamatan',
-    poin: 75,
-    tingkat: 'kecamatan'
-  },
-  {
-    id: 3,
-    namaPrestasi: 'Juara 2 Olimpiade Kabupaten',
-    poin: 100,
-    tingkat: 'kabupaten'
-  },
-  {
-    id: 4,
-    namaPrestasi: 'Juara 1 Kompetisi Provinsi',
-    poin: 150,
-    tingkat: 'provinsi'
-  },
-  {
-    id: 5,
-    namaPrestasi: 'Juara Nasional',
-    poin: 250,
-    tingkat: 'nasional'
-  }
-]
+const loadingStudents = ref(false);
+const loadingCategories = ref(false);
+const submitting = ref(false);
+
+const error = ref("");
 
 /*
 |--------------------------------------------------------------------------
@@ -271,17 +235,17 @@ const categories = [
 */
 
 const form = reactive({
-  studentId: '',
-  categoryId: '',
-  tanggalPrestasi: '',
-  keterangan: ''
-})
+  studentId: "",
+  categoryId: "",
+  tanggalPrestasi: "",
+  keterangan: "",
+});
 
 const errors = reactive({
-  studentId: '',
-  categoryId: '',
-  tanggalPrestasi: ''
-})
+  studentId: "",
+  categoryId: "",
+  tanggalPrestasi: "",
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -290,81 +254,230 @@ const errors = reactive({
 */
 
 const selectedCategory = computed(() => {
-  return categories.find(
-    category => category.id === Number(form.categoryId)
-  ) || null
-})
+  return (
+    categories.value.find(
+      (category) => category.id === Number(form.categoryId),
+    ) || null
+  );
+});
 
 /*
 |--------------------------------------------------------------------------
-| Methods
+| Helpers
+|--------------------------------------------------------------------------
+*/
+
+const getErrorMessage = (requestError, fallback) => {
+  return (
+    requestError?.response?.data?.message ||
+    requestError?.response?.data?.errors?.student_id?.[0] ||
+    requestError?.response?.data?.errors?.category_id?.[0] ||
+    requestError?.response?.data?.errors?.tanggal_prestasi?.[0] ||
+    fallback
+  );
+};
+
+const unwrapData = (payload) => {
+  const data = payload?.data;
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
+};
+
+const normalizeStudent = (student) => {
+  return {
+    id: student.id,
+    nama: student.user?.name || student.nama || student.name || "-",
+    nis: student.nis || "-",
+    tingkat: student.tingkat || "",
+    jurusan: student.jurusan || "",
+    nomorKelas: student.nomor_kelas || "",
+  };
+};
+
+const normalizeCategory = (category) => {
+  return {
+    id: category.id,
+    namaPrestasi:
+      category.nama_prestasi || category.namaPrestasi || category.name || "-",
+    poin: Number(category.poin || 0),
+    tingkat: category.tingkat || "-",
+  };
+};
+
+/*
+|--------------------------------------------------------------------------
+| Load Students
+|--------------------------------------------------------------------------
+*/
+
+const loadStudents = async () => {
+  loadingStudents.value = true;
+
+  try {
+    const response = await api.get("/staff/students", {
+      params: {
+        status: "aktif",
+        per_page: 100,
+      },
+    });
+
+    students.value = unwrapData(response.data)
+      .map(normalizeStudent)
+      .sort((a, b) => a.nama.localeCompare(b.nama));
+  } catch (requestError) {
+    error.value = getErrorMessage(requestError, "Data siswa gagal dimuat.");
+  } finally {
+    loadingStudents.value = false;
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Load Achievement Categories
+|--------------------------------------------------------------------------
+*/
+
+const loadCategories = async () => {
+  loadingCategories.value = true;
+
+  try {
+    const response = await api.get("/staff/achievement-categories", {
+      params: {
+        status: 1,
+        per_page: 100,
+      },
+    });
+
+    categories.value = unwrapData(response.data)
+      .map(normalizeCategory)
+      .sort((a, b) => a.namaPrestasi.localeCompare(b.namaPrestasi));
+  } catch (requestError) {
+    error.value = getErrorMessage(
+      requestError,
+      "Kategori prestasi gagal dimuat.",
+    );
+  } finally {
+    loadingCategories.value = false;
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Category
 |--------------------------------------------------------------------------
 */
 
 const handleCategoryChange = () => {
-  errors.categoryId = ''
-}
+  errors.categoryId = "";
+};
+
+/*
+|--------------------------------------------------------------------------
+| Validation
+|--------------------------------------------------------------------------
+*/
 
 const validateForm = () => {
-  errors.studentId = ''
-  errors.categoryId = ''
-  errors.tanggalPrestasi = ''
+  errors.studentId = "";
+  errors.categoryId = "";
+  errors.tanggalPrestasi = "";
 
-  let valid = true
+  let valid = true;
 
   if (!form.studentId) {
-    errors.studentId = 'Siswa wajib dipilih.'
-    valid = false
+    errors.studentId = "Siswa wajib dipilih.";
+    valid = false;
   }
 
   if (!form.categoryId) {
-    errors.categoryId = 'Prestasi wajib dipilih.'
-    valid = false
+    errors.categoryId = "Prestasi wajib dipilih.";
+    valid = false;
   }
 
   if (!form.tanggalPrestasi) {
-    errors.tanggalPrestasi = 'Tanggal prestasi wajib diisi.'
-    valid = false
+    errors.tanggalPrestasi = "Tanggal prestasi wajib diisi.";
+    valid = false;
   }
 
-  return valid
-}
+  return valid;
+};
 
-const handleSubmit = () => {
+/*
+|--------------------------------------------------------------------------
+| Submit
+|--------------------------------------------------------------------------
+*/
+
+const handleSubmit = async () => {
   if (!validateForm()) {
-    return
+    return;
   }
 
-  const student = students.find(
-    item => item.id === Number(form.studentId)
-  )
+  error.value = "";
+  submitting.value = true;
 
-  const category = categories.find(
-    item => item.id === Number(form.categoryId)
-  )
+  try {
+    await api.post("/staff/achievements", {
+      student_id: Number(form.studentId),
+      category_id: Number(form.categoryId),
+      tanggal_prestasi: form.tanggalPrestasi,
+      keterangan: form.keterangan.trim() || null,
+    });
 
-  const achievementData = {
-    studentId: Number(form.studentId),
-    studentName: student?.nama,
-    categoryId: Number(form.categoryId),
-    namaPrestasi: category?.namaPrestasi,
-    tingkat: category?.tingkat,
-    poin: category?.poin,
-    tanggalPrestasi: form.tanggalPrestasi,
-    keterangan: form.keterangan.trim(),
-    status: 'aktif'
+    alert("Data prestasi berhasil disimpan.");
+
+    router.push("/staff/prestasi");
+  } catch (requestError) {
+    const validationErrors = requestError?.response?.data?.errors;
+
+    if (validationErrors?.student_id?.[0]) {
+      errors.studentId = validationErrors.student_id[0];
+    }
+
+    if (validationErrors?.category_id?.[0]) {
+      errors.categoryId = validationErrors.category_id[0];
+    }
+
+    if (validationErrors?.tanggal_prestasi?.[0]) {
+      errors.tanggalPrestasi = validationErrors.tanggal_prestasi[0];
+    }
+
+    error.value = getErrorMessage(
+      requestError,
+      "Data prestasi gagal disimpan.",
+    );
+  } finally {
+    submitting.value = false;
   }
+};
 
-  console.log('Data prestasi:', achievementData)
-
-  alert('Data prestasi berhasil disimpan.')
-
-  router.push('/staff/prestasi')
-}
+/*
+|--------------------------------------------------------------------------
+| Navigation
+|--------------------------------------------------------------------------
+*/
 
 const goBack = () => {
-  router.push('/staff/prestasi')
-}
+  router.push("/staff/prestasi");
+};
+
+/*
+|--------------------------------------------------------------------------
+| Lifecycle
+|--------------------------------------------------------------------------
+*/
+
+onMounted(async () => {
+  await Promise.all([loadStudents(), loadCategories()]);
+});
 </script>
 
 <style scoped>
@@ -406,6 +519,25 @@ const goBack = () => {
 
 .back-button:hover {
   color: #1d4ed8;
+}
+
+.back-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.error-box {
+  margin-bottom: 20px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .form-card {
@@ -479,7 +611,9 @@ const goBack = () => {
   font-family: inherit;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-group input,
@@ -499,6 +633,14 @@ const goBack = () => {
 .form-group textarea:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .readonly-input {
@@ -575,12 +717,17 @@ const goBack = () => {
   transition: 0.2s;
 }
 
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .btn-secondary {
   background: #f1f5f9;
   color: #475569;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: #e2e8f0;
 }
 
@@ -589,8 +736,23 @@ const goBack = () => {
   color: #fff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: #1d4ed8;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {

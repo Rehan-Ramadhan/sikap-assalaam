@@ -8,18 +8,12 @@
       </div>
 
       <div class="header-actions">
-        <button
-          class="btn btn-secondary"
-          @click="goCategories"
-        >
+        <button class="btn btn-secondary" @click="goCategories">
           <FolderOpen :size="17" />
           <span>Kategori Prestasi</span>
         </button>
 
-        <button
-          class="btn btn-primary"
-          @click="goCreate"
-        >
+        <button class="btn btn-primary" @click="goCreate">
           <Plus :size="17" />
           <span>Catat Prestasi</span>
         </button>
@@ -102,12 +96,29 @@
       </select>
     </div>
 
+    <!-- Error -->
+    <div v-if="error" class="error-card">
+      <div class="error-icon">
+        <CircleAlert :size="20" />
+      </div>
+
+      <div>
+        <strong>Gagal memuat data prestasi</strong>
+        <p>{{ error }}</p>
+      </div>
+
+      <button class="retry-button" @click="loadAchievements">Coba Lagi</button>
+    </div>
+
     <!-- Table -->
     <div class="table-card">
       <div class="table-header">
         <div>
           <h3>Daftar Prestasi</h3>
-          <p>
+
+          <p v-if="loading">Memuat data prestasi...</p>
+
+          <p v-else>
             Menampilkan {{ filteredAchievements.length }} data prestasi.
           </p>
         </div>
@@ -129,149 +140,204 @@
           </thead>
 
           <tbody>
-            <tr
-              v-for="(achievement, index) in filteredAchievements"
-              :key="achievement.id"
-            >
-              <!-- No -->
-              <td>
-                {{ index + 1 }}
+            <!-- Loading -->
+            <tr v-if="loading">
+              <td colspan="8">
+                <div class="loading-state">
+                  <div class="spinner"></div>
+
+                  <p>Memuat data prestasi...</p>
+                </div>
               </td>
+            </tr>
 
-              <!-- Siswa -->
-              <td>
-                <div class="student-info">
-                  <div class="student-avatar">
-                    {{ getInitial(achievement.siswa.nama) }}
+            <!-- Data -->
+            <template v-else>
+              <tr
+                v-for="(achievement, index) in filteredAchievements"
+                :key="achievement.id"
+              >
+                <!-- No -->
+                <td>
+                  {{ index + 1 }}
+                </td>
+
+                <!-- Siswa -->
+                <td>
+                  <div class="student-info">
+                    <div class="student-avatar">
+                      {{ getInitial(achievement.siswa.nama) }}
+                    </div>
+
+                    <div class="student-details">
+                      <strong>
+                        {{ achievement.siswa.nama }}
+                      </strong>
+
+                      <span>
+                        {{ achievement.siswa.nis }}
+                      </span>
+                    </div>
                   </div>
+                </td>
 
-                  <div class="student-details">
+                <!-- Prestasi -->
+                <td>
+                  <div class="achievement-info">
                     <strong>
-                      {{ achievement.siswa.nama }}
+                      {{ achievement.prestasi }}
                     </strong>
 
                     <span>
-                      {{ achievement.siswa.nis }}
+                      {{ achievement.keterangan || "Tidak ada keterangan." }}
                     </span>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <!-- Prestasi -->
-              <td>
-                <div class="achievement-info">
-                  <strong>
-                    {{ achievement.prestasi }}
-                  </strong>
-
-                  <span>
-                    {{ achievement.keterangan }}
+                <!-- Tingkat -->
+                <td>
+                  <span
+                    class="level-badge"
+                    :class="`level-${achievement.tingkat}`"
+                  >
+                    {{ formatTingkat(achievement.tingkat) }}
                   </span>
-                </div>
-              </td>
+                </td>
 
-              <!-- Tingkat -->
-              <td>
-                <span
-                  class="level-badge"
-                  :class="`level-${achievement.tingkat}`"
-                >
-                  {{ formatTingkat(achievement.tingkat) }}
-                </span>
-              </td>
+                <!-- Poin -->
+                <td>
+                  <span class="point-badge"> +{{ achievement.poin }} </span>
+                </td>
 
-              <!-- Poin -->
-              <td>
-                <span class="point-badge">
-                  +{{ achievement.poin }}
-                </span>
-              </td>
+                <!-- Tanggal -->
+                <td>
+                  {{ formatDate(achievement.tanggal) }}
+                </td>
 
-              <!-- Tanggal -->
-              <td>
-                {{ formatDate(achievement.tanggal) }}
-              </td>
-
-              <!-- Status -->
-              <td>
-                <span
-                  class="status-badge"
-                  :class="
-                    achievement.status === 'aktif'
-                      ? 'status-active'
-                      : 'status-cancelled'
-                  "
-                >
-                  {{
-                    achievement.status === 'aktif'
-                      ? 'Aktif'
-                      : 'Dibatalkan'
-                  }}
-                </span>
-              </td>
-
-              <!-- Aksi -->
-              <td>
-                <div class="action-buttons">
-                  <button
-                    class="action-btn action-view"
-                    title="Lihat detail"
-                    @click="goShow(achievement.id)"
+                <!-- Status -->
+                <td>
+                  <span
+                    class="status-badge"
+                    :class="
+                      achievement.status === 'aktif'
+                        ? 'status-active'
+                        : 'status-cancelled'
+                    "
                   >
-                    <Eye :size="17" />
-                  </button>
+                    {{
+                      achievement.status === "aktif" ? "Aktif" : "Dibatalkan"
+                    }}
+                  </span>
+                </td>
 
-                  <button
-                    v-if="achievement.status === 'aktif'"
-                    class="action-btn action-edit"
-                    title="Edit prestasi"
-                    @click="goEdit(achievement.id)"
-                  >
-                    <Pencil :size="17" />
-                  </button>
+                <!-- Aksi -->
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      class="action-btn action-view"
+                      title="Lihat detail"
+                      @click="goShow(achievement.id)"
+                    >
+                      <Eye :size="17" />
+                    </button>
 
-                  <button
-                    v-if="achievement.status === 'aktif'"
-                    class="action-btn action-cancel"
-                    title="Batalkan prestasi"
-                    @click="cancelAchievement(achievement)"
-                  >
-                    <Ban :size="17" />
-                  </button>
-                </div>
-              </td>
-            </tr>
+                    <button
+                      v-if="achievement.status === 'aktif'"
+                      class="action-btn action-edit"
+                      title="Edit prestasi"
+                      @click="goEdit(achievement.id)"
+                    >
+                      <Pencil :size="17" />
+                    </button>
 
-            <!-- Empty State -->
-            <tr v-if="filteredAchievements.length === 0">
-              <td colspan="8">
-                <div class="empty-state">
-                  <div class="empty-icon">
-                    <Trophy :size="36" />
+                    <button
+                      v-if="achievement.status === 'aktif'"
+                      class="action-btn action-cancel"
+                      title="Batalkan prestasi"
+                      @click="cancelAchievement(achievement)"
+                    >
+                      <Ban :size="17" />
+                    </button>
                   </div>
+                </td>
+              </tr>
 
-                  <h3>Data prestasi tidak ditemukan</h3>
+              <!-- Empty State -->
+              <tr v-if="filteredAchievements.length === 0">
+                <td colspan="8">
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <Trophy :size="36" />
+                    </div>
 
-                  <p>
-                    Tidak ada data yang sesuai dengan pencarian
-                    atau filter yang dipilih.
-                  </p>
-                </div>
-              </td>
-            </tr>
+                    <h3>Data prestasi tidak ditemukan</h3>
+
+                    <p>
+                      Tidak ada data yang sesuai dengan pencarian atau filter
+                      yang dipilih.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="!loading && pagination.lastPage > 1" class="pagination">
+        <div class="pagination-info">
+          Menampilkan
+          {{ pagination.from || 0 }}
+          -
+          {{ pagination.to || 0 }}
+          dari
+          {{ pagination.total }}
+          data
+        </div>
+
+        <div class="pagination-buttons">
+          <button
+            class="pagination-button"
+            :disabled="pagination.currentPage === 1"
+            @click="changePage(pagination.currentPage - 1)"
+          >
+            Sebelumnya
+          </button>
+
+          <button
+            v-for="page in paginationPages"
+            :key="page"
+            class="pagination-button"
+            :class="{
+              active: page === pagination.currentPage,
+            }"
+            @click="changePage(page)"
+          >
+            {{ page }}
+          </button>
+
+          <button
+            class="pagination-button"
+            :disabled="pagination.currentPage === pagination.lastPage"
+            @click="changePage(pagination.currentPage + 1)"
+          >
+            Berikutnya
+          </button>
+        </div>
       </div>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from "vue";
+
+import { useRouter } from "vue-router";
 
 import {
   Ban,
+  CircleAlert,
   CircleCheck,
   Eye,
   FolderOpen,
@@ -280,235 +346,338 @@ import {
   Search,
   Star,
   Trophy,
-  Users
-} from 'lucide-vue-next'
+  Users,
+} from "lucide-vue-next";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
 
-const router = useRouter()
+import api from "../../../utils/api";
 
-const search = ref('')
-const filterTingkat = ref('')
-const filterStatus = ref('')
+const router = useRouter();
 
 /*
- * Dummy data sementara.
- * Nanti data ini akan diganti dengan response API.
- */
-const achievements = ref([
-  {
-    id: 1,
-    siswa: {
-      nama: 'Ahmad Fauzan',
-      nis: '2024001'
-    },
-    prestasi: 'Juara 1 Lomba Coding',
-    keterangan: 'Lomba coding tingkat sekolah',
-    tingkat: 'sekolah',
-    poin: 20,
-    tanggal: '2026-08-10',
-    status: 'aktif'
-  },
-  {
-    id: 2,
-    siswa: {
-      nama: 'Muhammad Rizky',
-      nis: '2024002'
-    },
-    prestasi: 'Juara 1 Olimpiade Matematika',
-    keterangan: 'Olimpiade matematika tingkat kecamatan',
-    tingkat: 'kecamatan',
-    poin: 30,
-    tanggal: '2026-08-08',
-    status: 'aktif'
-  },
-  {
-    id: 3,
-    siswa: {
-      nama: 'Siti Aisyah',
-      nis: '2024003'
-    },
-    prestasi: 'Juara 2 Lomba Futsal',
-    keterangan: 'Kompetisi futsal tingkat kabupaten',
-    tingkat: 'kabupaten',
-    poin: 25,
-    tanggal: '2026-08-05',
-    status: 'aktif'
-  },
-  {
-    id: 4,
-    siswa: {
-      nama: 'Dimas Pratama',
-      nis: '2024004'
-    },
-    prestasi: 'Juara 1 Pencak Silat',
-    keterangan: 'Kejuaraan pencak silat tingkat provinsi',
-    tingkat: 'provinsi',
-    poin: 40,
-    tanggal: '2026-07-28',
-    status: 'aktif'
-  },
-  {
-    id: 5,
-    siswa: {
-      nama: 'Nurul Hidayah',
-      nis: '2024005'
-    },
-    prestasi: 'Juara Nasional Robotik',
-    keterangan: 'Kompetisi robotik tingkat nasional',
-    tingkat: 'nasional',
-    poin: 60,
-    tanggal: '2026-07-20',
-    status: 'aktif'
-  },
-  {
-    id: 6,
-    siswa: {
-      nama: 'Fajar Maulana',
-      nis: '2024006'
-    },
-    prestasi: 'Finalis Kompetisi Internasional',
-    keterangan: 'Kompetisi teknologi tingkat internasional',
-    tingkat: 'internasional',
-    poin: 100,
-    tanggal: '2026-07-15',
-    status: 'dibatalkan'
-  }
-])
+|--------------------------------------------------------------------------
+| State
+|--------------------------------------------------------------------------
+*/
 
-/* =========================
-   Computed Statistics
-========================= */
+const loading = ref(false);
+const error = ref("");
+
+const search = ref("");
+const filterTingkat = ref("");
+const filterStatus = ref("");
+
+const achievements = ref([]);
+
+const pagination = ref({
+  currentPage: 1,
+  lastPage: 1,
+  from: 0,
+  to: 0,
+  total: 0,
+  perPage: 15,
+});
+
+/*
+|--------------------------------------------------------------------------
+| Computed Statistics
+|--------------------------------------------------------------------------
+*/
 
 const totalPrestasi = computed(() => {
-  return achievements.value.length
-})
+  return pagination.value.total;
+});
 
 const totalAktif = computed(() => {
-  return achievements.value.filter(
-    item => item.status === 'aktif'
-  ).length
-})
+  return achievements.value.filter((item) => item.status === "aktif").length;
+});
 
 const totalPoin = computed(() => {
   return achievements.value
-    .filter(item => item.status === 'aktif')
-    .reduce((total, item) => total + item.poin, 0)
-})
+    .filter((item) => item.status === "aktif")
+    .reduce((total, item) => total + Number(item.poin || 0), 0);
+});
 
 const totalSiswaBerprestasi = computed(() => {
   const students = achievements.value
-    .filter(item => item.status === 'aktif')
-    .map(item => item.siswa.nis)
+    .filter((item) => item.status === "aktif")
+    .map((item) => item.siswa.nis);
 
-  return new Set(students).size
-})
+  return new Set(students).size;
+});
 
-/* =========================
-   Filter
-========================= */
+/*
+|--------------------------------------------------------------------------
+| Filter
+|--------------------------------------------------------------------------
+*/
 
 const filteredAchievements = computed(() => {
-  return achievements.value.filter(item => {
-    const keyword = search.value
-      .toLowerCase()
-      .trim()
+  return achievements.value.filter((item) => {
+    const keyword = search.value.toLowerCase().trim();
 
     const matchesSearch =
       !keyword ||
       item.siswa.nama.toLowerCase().includes(keyword) ||
       item.siswa.nis.toLowerCase().includes(keyword) ||
-      item.prestasi.toLowerCase().includes(keyword)
+      item.prestasi.toLowerCase().includes(keyword);
 
     const matchesTingkat =
-      !filterTingkat.value ||
-      item.tingkat === filterTingkat.value
+      !filterTingkat.value || item.tingkat === filterTingkat.value;
 
     const matchesStatus =
-      !filterStatus.value ||
-      item.status === filterStatus.value
+      !filterStatus.value || item.status === filterStatus.value;
 
-    return (
-      matchesSearch &&
-      matchesTingkat &&
-      matchesStatus
-    )
-  })
-})
+    return matchesSearch && matchesTingkat && matchesStatus;
+  });
+});
 
-/* =========================
-   Helpers
-========================= */
+const paginationPages = computed(() => {
+  const current = pagination.value.currentPage;
+  const last = pagination.value.lastPage;
+
+  const pages = [];
+
+  let start = Math.max(1, current - 2);
+  let end = Math.min(last, current + 2);
+
+  if (end - start < 4) {
+    if (start === 1) {
+      end = Math.min(last, 5);
+    } else if (end === last) {
+      start = Math.max(1, last - 4);
+    }
+  }
+
+  for (let page = start; page <= end; page++) {
+    pages.push(page);
+  }
+
+  return pages;
+});
+
+/*
+|--------------------------------------------------------------------------
+| Load Data
+|--------------------------------------------------------------------------
+*/
+
+const loadAchievements = async (page = pagination.value.currentPage) => {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const response = await api.get("/staff/achievements", {
+      params: {
+        page,
+        per_page: pagination.value.perPage,
+      },
+    });
+
+    const payload = response.data;
+    const paginator = payload?.data;
+
+    const data = Array.isArray(paginator) ? paginator : paginator?.data || [];
+
+    achievements.value = data.map(normalizeAchievement);
+
+    pagination.value = {
+      currentPage: paginator?.current_page || page,
+      lastPage: paginator?.last_page || 1,
+      from: paginator?.from || 0,
+      to: paginator?.to || 0,
+      total: paginator?.total || data.length,
+      perPage: paginator?.per_page || pagination.value.perPage,
+    };
+  } catch (err) {
+    error.value = getErrorMessage(err);
+    achievements.value = [];
+
+    pagination.value = {
+      currentPage: 1,
+      lastPage: 1,
+      from: 0,
+      to: 0,
+      total: 0,
+      perPage: 15,
+    };
+  } finally {
+    loading.value = false;
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Normalize API Data
+|--------------------------------------------------------------------------
+*/
+
+const normalizeAchievement = (item) => {
+  return {
+    id: item.id,
+
+    siswa: {
+      nama: item.student?.user?.name || item.student?.name || "-",
+
+      nis: item.student?.nis || "-",
+    },
+
+    prestasi: item.category?.nama_prestasi || item.nama_prestasi || "-",
+
+    keterangan: item.keterangan || "",
+
+    tingkat: item.category?.tingkat || item.tingkat || "-",
+
+    poin: Number(item.poin_tercatat || item.category?.poin || 0),
+
+    tanggal: item.tanggal_prestasi || null,
+
+    status: item.status || "aktif",
+  };
+};
+
+/*
+|--------------------------------------------------------------------------
+| Error Handler
+|--------------------------------------------------------------------------
+*/
+
+const getErrorMessage = (err) => {
+  return (
+    err?.response?.data?.message ||
+    err?.message ||
+    "Terjadi kesalahan saat mengambil data prestasi."
+  );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
 
 const getInitial = (name) => {
-  if (!name) return '?'
+  if (!name) return "?";
 
   return name
-    .split(' ')
-    .map(word => word.charAt(0))
+    .split(" ")
+    .map((word) => word.charAt(0))
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
+    .join("")
+    .toUpperCase();
+};
 
 const formatTingkat = (tingkat) => {
   const labels = {
-    sekolah: 'Sekolah',
-    kecamatan: 'Kecamatan',
-    kabupaten: 'Kabupaten',
-    provinsi: 'Provinsi',
-    nasional: 'Nasional',
-    internasional: 'Internasional'
-  }
+    sekolah: "Sekolah",
+    kecamatan: "Kecamatan",
+    kabupaten: "Kabupaten",
+    provinsi: "Provinsi",
+    nasional: "Nasional",
+    internasional: "Internasional",
+  };
 
-  return labels[tingkat] || tingkat
-}
+  return labels[tingkat] || tingkat;
+};
 
 const formatDate = (date) => {
-  if (!date) return '-'
+  if (!date) return "-";
 
-  return new Date(date).toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  })
-}
+  const [datePart] = String(date).split("T");
+  const [year, month, day] = datePart.split("-");
 
-/* =========================
-   Navigation
-========================= */
+  if (!year || !month || !day) {
+    return date;
+  }
+
+  return `${day}/${month}/${year}`;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Pagination
+|--------------------------------------------------------------------------
+*/
+
+const changePage = (page) => {
+  if (
+    page < 1 ||
+    page > pagination.value.lastPage ||
+    page === pagination.value.currentPage
+  ) {
+    return;
+  }
+
+  loadAchievements(page);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Navigation
+|--------------------------------------------------------------------------
+*/
 
 const goCreate = () => {
-  router.push('/staff/prestasi/create')
-}
+  router.push("/staff/prestasi/create");
+};
 
 const goCategories = () => {
-  router.push('/staff/prestasi/kategori')
-}
+  router.push("/staff/prestasi/kategori");
+};
 
 const goShow = (id) => {
-  router.push(`/staff/prestasi/${id}`)
-}
+  router.push(`/staff/prestasi/${id}`);
+};
 
 const goEdit = (id) => {
-  router.push(`/staff/prestasi/${id}/edit`)
-}
+  router.push(`/staff/prestasi/${id}/edit`);
+};
 
-/* =========================
-   Cancel
-========================= */
+/*
+|--------------------------------------------------------------------------
+| Cancel
+|--------------------------------------------------------------------------
+*/
 
 const cancelAchievement = (achievement) => {
   const confirmed = confirm(
-    `Batalkan prestasi "${achievement.prestasi}" milik ${achievement.siswa.nama}?`
-  )
+    `Batalkan prestasi "${achievement.prestasi}" milik ${achievement.siswa.nama}?`,
+  );
 
-  if (!confirmed) return
+  if (!confirmed) {
+    return;
+  }
 
-  achievement.status = 'dibatalkan'
+  /*
+   * Endpoint cancel akan disambungkan setelah
+   * route POST /staff/achievements/{id}/cancel
+   * tersedia di routes/api.php.
+   */
+};
 
-  alert('Prestasi berhasil dibatalkan.')
-}
+/*
+|--------------------------------------------------------------------------
+| Watch
+|--------------------------------------------------------------------------
+*/
+
+watch([search, filterTingkat, filterStatus], () => {
+  /*
+   * Filter dilakukan terhadap data pada halaman
+   * yang sedang ditampilkan.
+   */
+});
+
+/*
+|--------------------------------------------------------------------------
+| Lifecycle
+|--------------------------------------------------------------------------
+*/
+
+onMounted(() => {
+  loadAchievements();
+});
 </script>
 
 <style scoped>
@@ -702,6 +871,63 @@ const cancelAchievement = (achievement) => {
 }
 
 /* =========================
+   Error
+========================= */
+
+.error-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+}
+
+.error-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.error-card strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.error-card p {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.retry-button {
+  margin-left: auto;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  background: #b91c1c;
+}
+
+/* =========================
    Table
 ========================= */
 
@@ -764,6 +990,40 @@ td {
 
 tbody tr:hover {
   background: #fafcff;
+}
+
+/* =========================
+   Loading
+========================= */
+
+.loading-state {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.loading-state p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* =========================
@@ -973,6 +1233,61 @@ tbody tr:hover {
 }
 
 /* =========================
+   Pagination
+========================= */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-top: 1px solid #eef2f7;
+}
+
+.pagination-info {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pagination-button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 7px;
+  background: #fff;
+  color: #475569;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.pagination-button.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================
    Responsive
 ========================= */
 
@@ -1007,6 +1322,25 @@ tbody tr:hover {
 
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .error-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .retry-button {
+    margin-left: 50px;
+  }
+
+  .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pagination-buttons {
+    width: 100%;
+    overflow-x: auto;
   }
 }
 </style>

@@ -1,7 +1,6 @@
 <template>
   <AppLayout>
     <div class="form-page">
-
       <div class="page-header">
         <div>
           <span class="eyebrow">PELANGGARAN</span>
@@ -16,7 +15,6 @@
       </div>
 
       <form class="form-card" @submit.prevent="saveViolation">
-
         <div class="form-section">
           <div class="section-heading">
             <div class="section-icon">
@@ -58,7 +56,6 @@
           </div>
 
           <div class="form-grid">
-
             <div class="form-group">
               <label>Kategori Pelanggaran <span>*</span></label>
 
@@ -78,11 +75,7 @@
             <div class="form-group">
               <label>Tanggal Kejadian <span>*</span></label>
 
-              <input
-                v-model="form.date"
-                type="date"
-                required
-              />
+              <input v-model="form.date" type="date" required />
             </div>
 
             <div class="form-group full">
@@ -94,13 +87,11 @@
                 placeholder="Tambahkan keterangan jika diperlukan..."
               ></textarea>
             </div>
-
           </div>
         </div>
 
         <!-- PREVIEW -->
         <div v-if="selectedCategory" class="preview-box">
-
           <div class="preview-icon">
             <AlertTriangle :size="19" />
           </div>
@@ -109,137 +100,168 @@
             <strong>{{ selectedCategory.name }}</strong>
 
             <span>
-              Kategori {{ capitalize(selectedCategory.category) }}
-              · {{ selectedCategory.points }} poin
+              Kategori {{ capitalize(selectedCategory.category) }} ·
+              {{ selectedCategory.points }} poin
             </span>
           </div>
-
         </div>
 
         <div class="form-footer">
-          <button
-            type="button"
-            class="secondary-btn"
-            @click="goBack"
-          >
+          <button type="button" class="secondary-btn" @click="goBack">
             Batal
           </button>
 
-          <button type="submit" class="primary-btn">
+          <button
+            type="submit"
+            class="primary-btn"
+            :disabled="submitting || loading"
+          >
             <Save :size="17" />
-            Simpan Pelanggaran
+            {{ submitting ? "Menyimpan..." : "Simpan Pelanggaran" }}
           </button>
         </div>
-
       </form>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-import AppLayout from '../../../layouts/AppLayout.vue'
+import AppLayout from "../../../layouts/AppLayout.vue";
+import api from "../../../utils/api";
 
-import {
-  ArrowLeft,
-  UserRound,
-  AlertTriangle,
-  Save
-} from 'lucide-vue-next'
+import { ArrowLeft, UserRound, AlertTriangle, Save } from "lucide-vue-next";
 
-const router = useRouter()
+const router = useRouter();
 
-const students = [
-  {
-    id: 1,
-    name: 'Ahmad Fauzan',
-    nis: '2026001'
-  },
-  {
-    id: 2,
-    name: 'Muhammad Rizky',
-    nis: '2026002'
-  },
-  {
-    id: 3,
-    name: 'Siti Aisyah',
-    nis: '2025001'
-  },
-  {
-    id: 4,
-    name: 'Dimas Pratama',
-    nis: '2025008'
-  },
-  {
-    id: 5,
-    name: 'Nabila Putri',
-    nis: '2026007'
-  }
-]
-
-const categories = [
-  {
-    id: 1,
-    name: 'Terlambat Masuk Sekolah',
-    category: 'ringan',
-    points: 5
-  },
-  {
-    id: 2,
-    name: 'Tidak Menggunakan Atribut Lengkap',
-    category: 'sedang',
-    points: 10
-  },
-  {
-    id: 3,
-    name: 'Meninggalkan Kelas Tanpa Izin',
-    category: 'sedang',
-    points: 15
-  },
-  {
-    id: 4,
-    name: 'Berkelahi di Lingkungan Sekolah',
-    category: 'berat',
-    points: 30
-  },
-  {
-    id: 5,
-    name: 'Membawa Barang Terlarang',
-    category: 'berat',
-    points: 40
-  }
-]
+const students = ref([]);
+const categories = ref([]);
+const loading = ref(true);
+const submitting = ref(false);
+const error = ref("");
 
 const form = ref({
-  studentId: '',
-  categoryId: '',
-  date: '2026-09-15',
-  description: ''
-})
+  studentId: "",
+  categoryId: "",
+  date: new Date().toISOString().split("T")[0],
+  description: "",
+});
+
+const unwrapData = (response) => {
+  const data = response?.data?.data ?? response?.data;
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
+};
+
+const normalizeStudent = (student) => {
+  return {
+    id: student.id,
+    name: student.user?.name || student.name || student.nama || "Siswa",
+    nis: student.nis || "-",
+  };
+};
+
+const normalizeCategory = (category) => {
+  return {
+    id: category.id,
+    name:
+      category.name || category.nama || category.nama_kategori || "Kategori",
+    category:
+      category.tingkat || category.category || category.kategori || "ringan",
+    points: Number(category.poin ?? category.points ?? 0),
+    status: category.status,
+  };
+};
+
+const loadData = async () => {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const [studentsResponse, categoriesResponse] = await Promise.all([
+      api.get("/staff/students", {
+        params: {
+          status: "aktif",
+          per_page: 100,
+        },
+      }),
+      api.get("/staff/violation-categories", {
+        params: {
+          per_page: 100,
+        },
+      }),
+    ]);
+
+    students.value = unwrapData(studentsResponse).map(normalizeStudent);
+
+    categories.value = unwrapData(categoriesResponse)
+      .map(normalizeCategory)
+      .filter((category) => {
+        return (
+          category.status === undefined ||
+          category.status === true ||
+          category.status === 1 ||
+          category.status === "aktif"
+        );
+      });
+  } catch (err) {
+    error.value =
+      err.response?.data?.message || "Data siswa dan kategori gagal dimuat.";
+  } finally {
+    loading.value = false;
+  }
+};
 
 const selectedCategory = computed(() => {
-  return categories.find(
-    item => item.id === Number(form.value.categoryId)
-  )
-})
+  return categories.value.find(
+    (item) => item.id === Number(form.value.categoryId),
+  );
+});
 
 const capitalize = (value) => {
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}
+  if (!value) return "";
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
 
 const goBack = () => {
-  router.push('/staff/pelanggaran')
-}
+  router.push("/staff/pelanggaran");
+};
 
-const saveViolation = () => {
-  alert(
-    'Mode frontend: data dummy belum dikirim ke server Laravel.'
-  )
+const saveViolation = async () => {
+  if (submitting.value) return;
 
-  router.push('/staff/pelanggaran')
-}
+  submitting.value = true;
+  error.value = "";
+
+  try {
+    await api.post("/staff/violations", {
+      student_id: Number(form.value.studentId),
+      category_id: Number(form.value.categoryId),
+      tanggal_kejadian: form.value.date,
+      keterangan: form.value.description.trim() || null,
+    });
+
+    window.alert("Pelanggaran berhasil dicatat.");
+    router.push("/staff/pelanggaran");
+  } catch (err) {
+    error.value = err.response?.data?.message || "Pelanggaran gagal dicatat.";
+  } finally {
+    submitting.value = false;
+  }
+};
+
+onMounted(loadData);
 </script>
 
 <style scoped>
@@ -263,7 +285,7 @@ const saveViolation = () => {
   color: #2563eb;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .page-header h1 {
@@ -271,7 +293,7 @@ const saveViolation = () => {
   color: #172033;
   font-size: 27px;
   font-weight: 600;
-  letter-spacing: -.02em;
+  letter-spacing: -0.02em;
 }
 
 .page-header p {
