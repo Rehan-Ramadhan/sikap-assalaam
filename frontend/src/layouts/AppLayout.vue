@@ -1,14 +1,14 @@
 <template>
   <div class="layout">
 
-    <Sidebar :role="role"/>
+    <AppSidebar :role="userRole" />
 
     <div class="content">
 
-      <Navbar @logout="logout"/>
+      <AppHeader @logout="handleLogout" />
 
       <main class="page-content">
-        <slot></slot>
+        <slot />
       </main>
 
     </div>
@@ -16,22 +16,26 @@
   </div>
 </template>
 
-<script setup>
-import Navbar from './Navbar.vue'
-import Sidebar from './Sidebar.vue'
 
+<script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-const props = defineProps({
-  role: String
-})
+import AppSidebar from '../components/dashboard/AppSidebar.vue'
+import AppHeader from '../components/dashboard/AppHeader.vue'
+
+import { getUser, logout } from '../utils/auth'
 
 const router = useRouter()
 
-const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+const user = getUser()
 
+const userRole = computed(() => {
+  return user?.role || ''
+})
+
+const handleLogout = () => {
+  logout()
   router.push('/login')
 }
 </script>

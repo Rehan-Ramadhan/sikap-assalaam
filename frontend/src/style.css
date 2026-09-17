@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 * {
   margin: 0;
   padding: 0;
@@ -5,20 +7,30 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif, var(--font-body);  
   background-color: #f5f6f8;
   color: #333;
+}
+
+.landing-page h1,
+.landing-page h2 {
+  font-family: var(--font-display);
 }
 
 button,
 input,
 select,
 textarea {
-  font-family: inherit;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 #app {
   min-height: 100vh;
+}
+
+:root {
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Playfair Display', serif;
 }
 
 .app {
@@ -1471,4 +1483,34 @@ textarea {
   .chart-wrapper {
     height: 220px;
   }
+}
+
+.dashboard-state {
+  padding: 32px;
+  background: #ffffff;
+  border-radius: 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.dashboard-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.section-description {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
 }

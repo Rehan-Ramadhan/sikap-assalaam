@@ -121,9 +121,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import api from "../../utils/api";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '../../utils/api'
 
 import {
   GraduationCap,
@@ -132,76 +132,98 @@ import {
   Eye,
   EyeOff,
   CircleAlert,
-  ArrowRight,
-} from "lucide-vue-next";
+  ArrowRight
+} from 'lucide-vue-next'
 
-const router = useRouter();
+const router = useRouter()
 
-const username = ref("");
-const password = ref("");
+const username = ref('')
+const password = ref('')
 
-const showPassword = ref(false);
-const loading = ref(false);
-const errorMessage = ref("");
+const showPassword = ref(false)
+const loading = ref(false)
+const errorMessage = ref('')
 
 const handleLogin = async () => {
-  errorMessage.value = "";
+  errorMessage.value = ''
 
   if (!username.value.trim()) {
-    errorMessage.value = "Email wajib diisi.";
-    return;
+    errorMessage.value = 'Email wajib diisi.'
+    return
   }
 
   if (!password.value) {
-    errorMessage.value = "Password wajib diisi.";
-    return;
+    errorMessage.value = 'Password wajib diisi.'
+    return
   }
 
-  loading.value = true;
+  loading.value = true
 
   try {
-    const response = await api.post("/login", {
+    const response = await api.post('/login', {
       email: username.value.trim(),
-      password: password.value,
-    });
+      password: password.value
+    })
 
-    const token = response.data.token;
-    const user = response.data.user;
+    const token = response.data.token
+    const user = response.data.user
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
+    // Simpan token dan data user
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
 
-    console.log("Login berhasil:", user);
+    console.log('Login berhasil:', user)
 
-    if (user.role === "staf") {
-      if (user.staf?.jabatan === "kesiswaan") {
-        await router.push("/kesiswaan");
-      } else {
-        await router.push("/kesiswaan");
-      }
-    } else if (user.role === "siswa") {
-      await router.push("/siswa");
-    } else {
-      errorMessage.value = "Role pengguna tidak dikenali.";
+    // =========================
+    // ROLE SISWA
+    // =========================
+    if (user.role === 'siswa') {
+      await router.push('/siswa')
+      return
     }
+
+    // =========================
+    // ROLE STAF
+    // =========================
+    if (user.role === 'staf') {
+      await router.push('/staff')
+      return
+    }
+
+    // =========================
+    // ROLE TIDAK DIKENALI
+    // =========================
+    errorMessage.value = 'Role pengguna tidak dikenali.'
+
+    // Hapus data login jika role tidak valid
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error)
 
     if (error.response?.status === 422) {
       errorMessage.value =
-        error.response.data?.errors?.email?.[0] || "Email atau password salah.";
+        error.response.data?.errors?.email?.[0] ||
+        'Email atau password salah.'
+
     } else if (error.response?.status === 401) {
-      errorMessage.value = "Email atau password salah.";
+      errorMessage.value = 'Email atau password salah.'
+
     } else if (error.response) {
       errorMessage.value =
-        error.response.data?.message || "Terjadi kesalahan saat login.";
+        error.response.data?.message ||
+        'Terjadi kesalahan saat login.'
+
     } else {
-      errorMessage.value = "Tidak dapat terhubung ke server Laravel.";
+      errorMessage.value =
+        'Tidak dapat terhubung ke server Laravel.'
     }
+
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 </script>
 
 <style scoped>
