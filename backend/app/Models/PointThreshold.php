@@ -11,6 +11,7 @@ class PointThreshold extends Model
 
     protected $fillable = [
         'poin_minimal',
+        'tahap',
         'nama_tindakan',
         'deskripsi',
         'status',

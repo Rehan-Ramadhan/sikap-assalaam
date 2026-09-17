@@ -66,7 +66,7 @@ class StudentSeeder extends Seeder
                 'jenis_kelamin' => $data['jenis_kelamin'],
                 'email' => $emailName . '@sikap.assalaam.sch.id',
                 'password' => Hash::make('password'),
-                'role' => 'siswa',
+                'role' => 'student',
             ]);
 
             Student::create([

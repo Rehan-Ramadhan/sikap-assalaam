@@ -23,8 +23,8 @@ return new class extends Migration
                 ->restrictOnDelete();
 
             $table->enum('status', [
-                'ditunggu',
-                'pembinaan',
+                'menunggu',
+                'diproses',
                 'selesai'
             ]);
 

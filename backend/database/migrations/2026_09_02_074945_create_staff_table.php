@@ -19,10 +19,10 @@ return new class extends Migration
             $table->string('nip', 30)->unique();
 
             $table->enum('jabatan', [
-                'Wali Kelas',
-                'BK',
-                'Kesiswaan',
-                'Kepala Sekolah'
+                'wali_kelas',
+                'bk',
+                'kesiswaan',
+                'kepala_sekolah'
             ]);
 
             $table->enum('status', [
