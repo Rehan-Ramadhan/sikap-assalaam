@@ -140,7 +140,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { AlertCircle, ArrowLeft, LoaderCircle, Save } from "lucide-vue-next";
 
-import api from "../../../utils/api";
+import api from "../../../../utils/api";
 
 const router = useRouter();
 

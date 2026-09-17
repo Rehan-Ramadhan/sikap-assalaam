@@ -150,7 +150,7 @@ import { onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { AlertCircle, ArrowLeft, LoaderCircle, Save } from "lucide-vue-next";
 
-import api from "../../../utils/api";
+import api from "../../../../utils/api";
 
 const route = useRoute();
 const router = useRouter();

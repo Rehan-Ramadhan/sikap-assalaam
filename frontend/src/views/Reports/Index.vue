@@ -171,7 +171,9 @@
                   <option value="wali_kelas">Wali Kelas</option>
                   <option value="bk">BK</option>
                   <option value="kesiswaan">Kesiswaan</option>
-                  <option value="kepala_sekolah">Kepala Sekolah</option>
+                  <option value="kepala_sekolah">
+                    Kepala Sekolah
+                  </option>
                 </select>
               </div>
 
@@ -207,10 +209,15 @@
         </div>
 
         <!-- LOADING -->
-        <div v-if="loading" class="loading-state">Memuat data laporan...</div>
+        <div v-if="loading" class="loading-state">
+          Memuat data laporan...
+        </div>
 
         <!-- RINGKASAN SISWA -->
-        <div v-else-if="activeTab === 'ringkasan'" class="report-card">
+        <div
+          v-else-if="activeTab === 'ringkasan'"
+          class="report-card"
+        >
           <div class="card-header">
             <div>
               <h2>Ringkasan Siswa</h2>
@@ -276,7 +283,9 @@
                 </tr>
 
                 <tr v-if="studentsReport.length === 0">
-                  <td colspan="9" class="empty-state">Tidak ada data siswa.</td>
+                  <td colspan="9" class="empty-state">
+                    Tidak ada data siswa.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -284,7 +293,10 @@
         </div>
 
         <!-- PELANGGARAN -->
-        <div v-else-if="activeTab === 'pelanggaran'" class="report-card">
+        <div
+          v-else-if="activeTab === 'pelanggaran'"
+          class="report-card"
+        >
           <div class="card-header">
             <div>
               <h2>Laporan Pelanggaran</h2>
@@ -324,7 +336,10 @@
               </thead>
 
               <tbody>
-                <tr v-for="(item, index) in violations" :key="item.id">
+                <tr
+                  v-for="(item, index) in violations"
+                  :key="item.id"
+                >
                   <td>{{ index + 1 }}</td>
                   <td>{{ item.student }}</td>
                   <td>{{ item.violation }}</td>
@@ -355,7 +370,10 @@
         </div>
 
         <!-- PRESTASI -->
-        <div v-else-if="activeTab === 'prestasi'" class="report-card">
+        <div
+          v-else-if="activeTab === 'prestasi'"
+          class="report-card"
+        >
           <div class="card-header">
             <div>
               <h2>Laporan Prestasi</h2>
@@ -396,7 +414,10 @@
               </thead>
 
               <tbody>
-                <tr v-for="(item, index) in achievements" :key="item.id">
+                <tr
+                  v-for="(item, index) in achievements"
+                  :key="item.id"
+                >
                   <td>{{ index + 1 }}</td>
                   <td>{{ item.student }}</td>
                   <td>{{ item.achievement }}</td>
@@ -428,7 +449,10 @@
         </div>
 
         <!-- PENANGANAN -->
-        <div v-else-if="activeTab === 'penanganan'" class="report-card">
+        <div
+          v-else-if="activeTab === 'penanganan'"
+          class="report-card"
+        >
           <div class="card-header">
             <div>
               <h2>Laporan Penanganan</h2>
@@ -468,7 +492,10 @@
               </thead>
 
               <tbody>
-                <tr v-for="(item, index) in interventions" :key="item.id">
+                <tr
+                  v-for="(item, index) in interventions"
+                  :key="item.id"
+                >
                   <td>{{ index + 1 }}</td>
                   <td>{{ item.student }}</td>
                   <td>{{ formatStage(item.stage) }}</td>
@@ -499,7 +526,9 @@
         <div class="student-report-info">
           <div>
             <h2>Ringkasan Saya</h2>
-            <p>Berikut data pelanggaran, prestasi, dan penanganan Anda.</p>
+            <p>
+              Berikut data pelanggaran, prestasi, dan penanganan Anda.
+            </p>
           </div>
         </div>
 
@@ -533,10 +562,15 @@
         </div>
 
         <!-- LOADING SISWA -->
-        <div v-if="loading" class="loading-state">Memuat data laporan...</div>
+        <div v-if="loading" class="loading-state">
+          Memuat data laporan...
+        </div>
 
         <!-- STUDENT PELANGGARAN -->
-        <div v-else-if="activeStudentTab === 'pelanggaran'" class="report-card">
+        <div
+          v-else-if="activeStudentTab === 'pelanggaran'"
+          class="report-card"
+        >
           <div class="card-header">
             <div>
               <h2>Pelanggaran Saya</h2>
@@ -575,7 +609,10 @@
               </thead>
 
               <tbody>
-                <tr v-for="(item, index) in studentViolations" :key="item.id">
+                <tr
+                  v-for="(item, index) in studentViolations"
+                  :key="item.id"
+                >
                   <td>{{ index + 1 }}</td>
                   <td>{{ item.violation }}</td>
 
@@ -605,7 +642,10 @@
         </div>
 
         <!-- STUDENT PRESTASI -->
-        <div v-else-if="activeStudentTab === 'prestasi'" class="report-card">
+        <div
+          v-else-if="activeStudentTab === 'prestasi'"
+          class="report-card"
+        >
           <div class="card-header">
             <div>
               <h2>Prestasi Saya</h2>
@@ -645,7 +685,10 @@
               </thead>
 
               <tbody>
-                <tr v-for="(item, index) in studentAchievements" :key="item.id">
+                <tr
+                  v-for="(item, index) in studentAchievements"
+                  :key="item.id"
+                >
                   <td>{{ index + 1 }}</td>
                   <td>{{ item.achievement }}</td>
                   <td>{{ item.level }}</td>
@@ -676,7 +719,10 @@
         </div>
 
         <!-- STUDENT PENANGANAN -->
-        <div v-else-if="activeStudentTab === 'penanganan'" class="report-card">
+        <div
+          v-else-if="activeStudentTab === 'penanganan'"
+          class="report-card"
+        >
           <div class="card-header">
             <div>
               <h2>Penanganan Saya</h2>
@@ -884,7 +930,9 @@ const normalizeIntervention = (item) => {
 
     stage: item.tahap ?? "-",
 
-    points: Number(item.poin_saat_penanganan ?? item.point ?? item.poin ?? 0),
+    points: Number(
+      item.poin_saat_penanganan ?? item.point ?? item.poin ?? 0,
+    ),
 
     status: item.status ?? "-",
 
@@ -946,7 +994,9 @@ const loadStudents = async () => {
 
     const data = getResponseData(response);
 
-    const studentsData = Array.isArray(data) ? data : (data?.data ?? []);
+    const studentsData = Array.isArray(data)
+      ? data
+      : (data?.data ?? []);
 
     students.value = studentsData.map(normalizeStudent);
   } catch (error) {
@@ -954,14 +1004,16 @@ const loadStudents = async () => {
   }
 };
 
-const loadStudentReport = async () => {
+const loadStaffStudentReport = async () => {
   const response = await api.get("/staff/reports/students", {
     params: buildFilters(),
   });
 
   const data = getResponseData(response);
 
-  studentsReport.value = Array.isArray(data) ? data.map(normalizeStudent) : [];
+  studentsReport.value = Array.isArray(data)
+    ? data.map(normalizeStudent)
+    : [];
 };
 
 const loadViolations = async () => {
@@ -971,7 +1023,9 @@ const loadViolations = async () => {
 
   const data = getResponseData(response);
 
-  const violationsData = Array.isArray(data) ? data : (data?.data ?? []);
+  const violationsData = Array.isArray(data)
+    ? data
+    : (data?.data ?? []);
 
   violations.value = violationsData.map(normalizeViolation);
 };
@@ -983,7 +1037,9 @@ const loadAchievements = async () => {
 
   const data = getResponseData(response);
 
-  const achievementsData = Array.isArray(data) ? data : (data?.data ?? []);
+  const achievementsData = Array.isArray(data)
+    ? data
+    : (data?.data ?? []);
 
   achievements.value = achievementsData.map(normalizeAchievement);
 };
@@ -995,7 +1051,9 @@ const loadInterventions = async () => {
 
   const data = getResponseData(response);
 
-  const interventionsData = Array.isArray(data) ? data : (data?.data ?? []);
+  const interventionsData = Array.isArray(data)
+    ? data
+    : (data?.data ?? []);
 
   interventions.value = interventionsData.map(normalizeIntervention);
 };
@@ -1006,7 +1064,7 @@ const loadStaffReport = async () => {
 
   try {
     if (activeTab.value === "ringkasan") {
-      await loadStudentReport();
+      await loadStaffStudentReport();
     }
 
     if (activeTab.value === "pelanggaran") {
@@ -1024,7 +1082,8 @@ const loadStaffReport = async () => {
     console.error("Gagal memuat laporan:", error);
 
     errorMessage.value =
-      error?.response?.data?.message ?? "Gagal memuat data laporan.";
+      error?.response?.data?.message ??
+      "Gagal memuat data laporan.";
   } finally {
     loading.value = false;
   }
@@ -1035,7 +1094,9 @@ const loadStudentViolations = async () => {
 
   const data = getResponseData(response);
 
-  const violationsData = Array.isArray(data) ? data : (data?.data ?? []);
+  const violationsData = Array.isArray(data)
+    ? data
+    : (data?.data ?? []);
 
   studentViolations.value = violationsData.map(normalizeViolation);
 };
@@ -1045,9 +1106,12 @@ const loadStudentAchievements = async () => {
 
   const data = getResponseData(response);
 
-  const achievementsData = Array.isArray(data) ? data : (data?.data ?? []);
+  const achievementsData = Array.isArray(data)
+    ? data
+    : (data?.data ?? []);
 
-  studentAchievements.value = achievementsData.map(normalizeAchievement);
+  studentAchievements.value =
+    achievementsData.map(normalizeAchievement);
 };
 
 const loadStudentInterventions = async () => {
@@ -1055,9 +1119,12 @@ const loadStudentInterventions = async () => {
 
   const data = getResponseData(response);
 
-  const interventionsData = Array.isArray(data) ? data : (data?.data ?? []);
+  const interventionsData = Array.isArray(data)
+    ? data
+    : (data?.data ?? []);
 
-  studentInterventions.value = interventionsData.map(normalizeIntervention);
+  studentInterventions.value =
+    interventionsData.map(normalizeIntervention);
 };
 
 const loadStudentReport = async () => {
@@ -1080,7 +1147,8 @@ const loadStudentReport = async () => {
     console.error("Gagal memuat laporan siswa:", error);
 
     errorMessage.value =
-      error?.response?.data?.message ?? "Gagal memuat data laporan.";
+      error?.response?.data?.message ??
+      "Gagal memuat data laporan.";
   } finally {
     loading.value = false;
   }
@@ -1166,7 +1234,9 @@ const getExportFilename = (type, format) => {
     interventions: "laporan-intervention",
   };
 
-  return `${names[type] ?? "laporan"}.${format === "excel" ? "xlsx" : "pdf"}`;
+  return `${names[type] ?? "laporan"}.${
+    format === "excel" ? "xlsx" : "pdf"
+  }`;
 };
 
 const exportReport = async (type, format) => {
@@ -1174,10 +1244,13 @@ const exportReport = async (type, format) => {
   errorMessage.value = "";
 
   try {
-    const response = await api.get(getExportEndpoint(type, format), {
-      params: isStaff.value ? buildFilters() : {},
-      responseType: "blob",
-    });
+    const response = await api.get(
+      getExportEndpoint(type, format),
+      {
+        params: isStaff.value ? buildFilters() : {},
+        responseType: "blob",
+      },
+    );
 
     const blob = new Blob([response.data], {
       type:
@@ -1202,7 +1275,8 @@ const exportReport = async (type, format) => {
     console.error("Gagal export laporan:", error);
 
     errorMessage.value =
-      error?.response?.data?.message ?? "Gagal mengexport laporan.";
+      error?.response?.data?.message ??
+      "Gagal mengexport laporan.";
   } finally {
     exporting.value = false;
   }
@@ -1228,7 +1302,10 @@ watch(
 
 onMounted(async () => {
   if (isStaff.value) {
-    await Promise.all([loadStudents(), loadStaffReport()]);
+    await Promise.all([
+      loadStudents(),
+      loadStaffReport(),
+    ]);
   }
 
   if (isStudent.value) {

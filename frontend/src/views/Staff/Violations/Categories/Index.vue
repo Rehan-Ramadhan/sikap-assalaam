@@ -212,7 +212,7 @@ import {
   Trash2,
 } from "lucide-vue-next";
 
-import api from "../../../utils/api";
+import api from "../../../../utils/api";
 
 const router = useRouter();
 
